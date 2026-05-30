@@ -1,0 +1,1186 @@
+---
+title: "ThSQCA Tutorial (English)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ThSQCA Tutorial (English)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+Threshold-Sweep QCA (TS-QCA) is a framework for systematically exploring how different threshold settings affect the results of crisp-set Qualitative Comparative Analysis (QCA).  
+In crisp-set QCA, the researcher must choose thresholds to binarize:
+
+- the outcome **Y**, and
+- the conditions **X**.
+
+Small changes in these thresholds may lead to substantial differences in truth tables and minimized solutions.
+
+TS-QCA provides:
+
+- a **systematic** way to vary thresholds,
+- a **transparent** way to evaluate sensitivity,
+- and a **reproducible** workflow for robustness assessment.
+
+The `ThSQCA` package implements four sweep methods:
+
+| Method | What varies | What stays fixed | Purpose |
+|--------|-------------|------------------|----------|
+| **CTS–QCA** | One X threshold | Y + other Xs | Evaluate influence of a single condition |
+| **MCTS–QCA** | Multiple X thresholds | Y | Explore combinations of X thresholds |
+| **OTS–QCA** | Y threshold | All Xs | Assess robustness to Y calibration |
+| **DTS–QCA** | X and Y thresholds | None | Full 2D sensitivity analysis |
+
+> **Scope:** This package focuses on **sufficiency analysis**—identifying condition combinations that are sufficient for an outcome. Necessity analysis (whether a condition is required for an outcome) involves different logical structures and evaluation metrics, and is planned for future versions.
+
+> **Important (v1.2.0)**: Version 1.2.0 fixed a critical bug where intermediate solutions (using `dir.exp`) were incorrectly extracted. If you used intermediate solutions in previous versions, please re-run your analyses. Reports now also display the Solution Type and include optional QCA package output for verification.
+
+---
+
+# Three Types of QCA Solutions (New in v1.1.0)
+
+## Overview
+
+QCA minimization can produce three types of solutions depending on how **logical remainders** (unobserved configurations) are handled:
+
+| Solution Type | `include` | `dir.exp` | Logical Remainders | Description |
+|--------------|-----------|-----------|-------------------|-------------|
+| **Complex** (default) | `""` | `NULL` | Not used | Most conservative; only observed configurations |
+| **Parsimonious** | `"?"` | `NULL` | All used | Most simplified; uses all remainders |
+| **Intermediate** | `"?"` | `c(1,1,...)` | Theory-guided | Uses remainders consistent with theory |
+
+## QCA-Compatible Defaults (v1.1.0)
+
+As of v1.1.0, ThSQCA uses the **same defaults** as `QCA::minimize()`:
+
+- `include = ""` → Does not include logical remainders
+- `dir.exp = NULL` → No directional expectations
+
+This produces the **complex (conservative) solution** by default.
+
+## Example: Computing All Three Solutions
+
+```{r}
+library(ThSQCA)
+data(sample_data)
+thrX <- c(X1 = 7, X2 = 7, X3 = 7)
+
+# 1. Complex Solution (default, most conservative)
+result_comp <- otSweep(
+  dat = sample_data,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 7,
+  thrX = thrX
+  # include = "" (default), dir.exp = NULL (default)
+)
+cat("Complex Solution:", result_comp$summary$expression, "\n")
+
+# 2. Parsimonious Solution (uses all logical remainders)
+result_pars <- otSweep(
+  dat = sample_data,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 7,
+  thrX = thrX,
+  include = "?"  # Include logical remainders
+)
+cat("Parsimonious Solution:", result_pars$summary$expression, "\n")
+
+# 3. Intermediate Solution (theory-guided remainders)
+result_int <- otSweep(
+  dat = sample_data,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 7,
+  thrX = thrX,
+  include = "?",
+  dir.exp = c(1, 1, 1)  # All conditions expected to contribute positively
+)
+cat("Intermediate Solution:", result_int$summary$expression, "\n")
+```
+
+## When to Use Each Solution
+
+| Solution | When to Use | Pros | Cons |
+|----------|-------------|------|------|
+| **Complex** | Exploratory analysis, maximum caution | No assumptions about unobserved cases | Often too complex for interpretation |
+| **Parsimonious** | Robustness checks, simplicity | Most simplified form | May rely on implausible assumptions |
+| **Intermediate** | Theory-driven analysis, publications | Balances parsimony and theory | Requires theoretical justification |
+
+> **Note:** The **intermediate solution** is most commonly reported in QCA publications (Ragin, 2008; Fiss, 2011), as it incorporates theoretical knowledge while avoiding implausible simplifying assumptions.
+
+## Migration from v1.0.0
+
+If you were using ThSQCA v1.0.0, note that the default behavior has changed:
+
+```{r, eval=FALSE}
+# v1.0.0 (intermediate solution by default due to bug)
+result <- otSweep(dat, "Y", c("X1", "X2", "X3"), sweep_range = 7, thrX = thrX)
+
+# v1.1.0: To get the same result as v1.0.0, explicitly specify:
+result <- otSweep(
+  dat = sample_data,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 7,
+  thrX = thrX,
+  include = "?",
+  dir.exp = c(1, 1, 1)  # Explicit intermediate solution
+)
+```
+
+---
+
+# Data Requirements
+
+TS-QCA assumes:
+
+- TS-QCA handles any numeric data (continuous, interval, or ordinal scales). 
+  Pre-calibration is NOT required because raw scores (e.g., 1–85 scale) are 
+  binarized directly at specified thresholds.
+- Ordinal data can be analyzed directly, enabling analyses that are difficult 
+  with fsQCA (which requires continuous membership values).
+- Thresholds can be any numeric value (integer or real).
+- Missing values should be handled before running sweeps.
+
+Example dataset structure:
+```{r}
+library(ThSQCA)
+data("sample_data")
+dat <- sample_data
+str(dat)
+```
+
+Define outcome and conditions:
+```{r}
+outcome  <- "Y"
+conditions <- c("X1", "X2", "X3")
+```
+
+---
+
+# Working with Mixed Data Types
+
+## Handling Binary and Continuous Variables
+
+In real-world social science research, datasets often contain **both binary variables** (e.g., gender, yes/no responses) **and continuous variables** (e.g., sales, satisfaction scores). When using ThSQCA with such mixed data, special attention is required.
+
+### Key Principles
+
+1. **Do NOT sweep binary variables** — they are already binarized (0/1)
+2. **Use threshold = 1 for binary variables** to preserve their original values
+3. **Explicitly specify thresholds** for each variable in `sweep_list`
+
+### Why Threshold = 1 for Binary Variables?
+
+The internal `qca_bin()` function uses the rule `x >= thr` for binarization:
+
+- If `x = 0`: `0 >= 1` → FALSE → **0** (preserved)
+- If `x = 1`: `1 >= 1` → TRUE → **1** (preserved)
+
+This ensures that binary variables remain unchanged during the binarization process.
+
+### Practical Example: Mixed Data
+
+Suppose your dataset has:
+
+- **X1**: Gender (0 = Male, 1 = Female) — binary variable
+- **X2**: Product Quality Score (0-10) — continuous variable
+- **X3**: Store Atmosphere Score (0-10) — continuous variable
+
+When using `ctSweepM()`:
+
+```{r, eval=FALSE}
+# CORRECT: Specify threshold explicitly for each variable
+sweep_list <- list(
+  X1 = 1,      # Binary variable: use threshold 1
+  X2 = 6:8,    # Continuous: sweep thresholds
+  X3 = 6:8     # Continuous: sweep thresholds
+)
+
+# Using intermediate solution (most common in publications)
+res_mixed <- ctSweepM(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list     = sweep_list,
+  thrY           = 7,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1)     # Directional expectations (intermediate)
+)
+```
+
+This explores 1 × 3 × 3 = **9 threshold combinations**, treating X1 as a fixed binary condition while sweeping X2 and X3.
+
+### Common Mistake
+
+```{r, eval=FALSE}
+# WRONG: Using sweep range for binary variables
+sweep_list <- list(
+  X1 = 6:8,    # All values become 0 (since 0 < 6 and 1 < 6)
+  X2 = 6:8,
+  X3 = 6:8
+)
+```
+
+If you accidentally specify `X1 = 6:8`, both 0 and 1 will fail the `>= 6` condition, making all X1 values become 0. This destroys the information in your binary variable.
+
+### Best Practice
+
+Always examine your data structure before setting up threshold sweeps:
+
+```{r, eval=FALSE}
+# Check variable ranges
+summary(dat[, c("X1", "X2", "X3")])
+
+# Identify binary variables (only 0 and 1)
+sapply(dat[, c("X1", "X2", "X3")], function(x) {
+  unique_vals <- sort(unique(x))
+  if (length(unique_vals) == 2 && all(unique_vals == c(0, 1))) {
+    "Binary (use threshold = 1)"
+  } else {
+    paste("Continuous (range:", min(x), "-", max(x), ")")
+  }
+})
+```
+
+## Using Pre-Calibrated Fuzzy Conditions (`pre_calibrated`)
+
+Version 1.3.0 introduces the `pre_calibrated` argument to all four sweep
+functions (`otSweep`, `ctSweepS`, `ctSweepM`, `dtSweep`). This argument
+enables a **mixed crisp/fuzzy** workflow: some conditions can be passed as
+fuzzy-set membership scores (values in [0, 1] produced by
+`QCA::calibrate()`), while other conditions are swept on their raw scale
+as usual.
+
+### How it works
+
+- Variables listed in `pre_calibrated` are passed directly to
+  `QCA::truthTable()` **without binarization**.
+- All other conditions are binarized using `qca_bin()` at the thresholds
+  specified in `thrX`.
+- Pre-calibrated variables do not require a `thrX` entry, since no
+  binarization is applied to them.
+
+### Validation
+
+The function raises an error if:
+
+- A variable listed in `pre_calibrated` is not found in `conditions`.
+- Its values fall outside the [0, 1] range (indicating that a raw-scale
+  variable was passed by mistake).
+
+A warning is issued if the variable contains `NA` values.
+
+### Sweep variables vs. pre-calibrated variables
+
+Sweep variables should be kept on their **raw (original) scale**. When you
+sweep a variable on its raw scale (e.g., Likert scores 6, 7, 8), each
+threshold carries direct substantive meaning. Pre-calibrating a sweep
+variable into fuzzy values and then sweeping over those values (e.g., 0.3,
+0.5, 0.7) makes interpretation indirect and harder to justify.
+
+If a variable appears in both `pre_calibrated` and a sweep list, ThSQCA
+issues a warning and uses the pre-calibrated values, ignoring the sweep
+thresholds.
+
+### Recommended practice
+
+| Variable type | Recommended approach |
+|---|---|
+| Conditions you want to sweep | Keep on raw scale; use `qca_bin()` via `thrX` |
+| Conditions with theoretically grounded fuzzy calibration | Pre-calibrate and list in `pre_calibrated` |
+| Binary conditions (0/1) | Use `thrX = 1`; optionally list in `pre_calibrated` |
+
+*A worked example with sample data will be added in a future release.*
+
+---
+
+# CTS–QCA: Single-Condition Sweep (`ctSweepS`)
+
+CTS–QCA varies the threshold for **one X condition**, keeping the others fixed.
+
+## Default: Complex Solution
+```{r, error=TRUE}
+sweep_var   <- "X3"   # Condition (X) whose threshold is swept
+sweep_range <- 6:9    # Candidate threshold values to evaluate
+
+thrY         <- 7     # Outcome (Y) threshold (fixed)
+thrX_default <- 7     # Threshold for other X conditions (fixed)
+
+# Default: Complex solution (include = "", dir.exp = NULL)
+res_cts <- ctSweepS(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_var      = sweep_var,
+  sweep_range    = sweep_range,
+  thrY           = thrY,
+  thrX_default   = thrX_default,
+  return_details = TRUE
+)
+
+summary(res_cts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r, error=TRUE}
+# Intermediate solution: specify include = "?" and dir.exp
+res_cts_int <- ctSweepS(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_var      = sweep_var,
+  sweep_range    = sweep_range,
+  thrY           = thrY,
+  thrX_default   = thrX_default,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1),    # Directional expectations
+  return_details = TRUE
+)
+
+summary(res_cts_int)
+```
+
+---
+
+# MCTS–QCA: Multiple X Sweep (`ctSweepM`)
+
+MCTS–QCA evaluates all combinations of thresholds for multiple X conditions.
+
+## Default: Complex Solution
+```{r, error=TRUE}
+# Create a sweep list specifying thresholds for each condition
+sweep_list <- list(
+  X1 = 6:7,
+  X2 = 6:7,
+  X3 = 6:7
+)
+
+# Default: Complex solution
+res_mcts <- ctSweepM(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list     = sweep_list,
+  thrY           = 7,
+  return_details = TRUE
+)
+
+summary(res_mcts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r, error=TRUE}
+# Intermediate solution: specify include = "?" and dir.exp
+res_mcts_int <- ctSweepM(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list     = sweep_list,
+  thrY           = 7,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_mcts_int)
+```
+
+---
+
+# OTS–QCA: Outcome Sweep (`otSweep`)
+
+OTS–QCA varies only the threshold of **Y**, keeping X thresholds fixed.
+
+## Default: Complex Solution
+```{r}
+# Default: Complex solution
+res_ots <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = c(X1 = 7, X2 = 7, X3 = 7),
+  return_details = TRUE
+)
+
+summary(res_ots)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r}
+# Intermediate solution: specify include = "?" and dir.exp
+res_ots_int <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = c(X1 = 7, X2 = 7, X3 = 7),
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_ots_int)
+```
+
+---
+
+# DTS–QCA: Two-Dimensional Sweep (`dtSweep`)
+
+DTS–QCA varies both **X thresholds** and **Y thresholds**, creating a full 2D grid.
+
+## Default: Complex Solution
+```{r}
+sweep_list_dts_X <- list(
+  X1 = 6:7,
+  X2 = 6:7,
+  X3 = 6:7
+)
+
+sweep_range_dts_Y <- 6:7
+
+# Default: Complex solution
+res_dts <- dtSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list_X   = sweep_list_dts_X,
+  sweep_range_Y  = sweep_range_dts_Y,
+  return_details = TRUE
+)
+
+summary(res_dts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r}
+# Intermediate solution: specify include = "?" and dir.exp
+res_dts_int <- dtSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list_X   = sweep_list_dts_X,
+  sweep_range_Y  = sweep_range_dts_Y,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_dts_int)
+```
+
+---
+
+# Understanding the Output
+
+Each sweep result contains:
+
+- threshold values tested,
+- minimized solution expression,
+- solution consistency (`inclS`),
+- solution coverage (`covS`).
+
+General guidance:
+
+- **Consistency ≥ 0.8** is typically required for sufficiency.
+- **Coverage** indicates empirical relevance; higher is better.
+- A solution sensitive to small threshold changes suggests low robustness.
+
+---
+
+# Handling Multiple Solutions (New in v0.2.0)
+
+## Why Multiple Solutions Matter
+
+When QCA minimization produces multiple equivalent intermediate solutions, researchers face a methodological challenge: which solution should be reported? Traditional approaches often report only the first solution (M1), but this may miss important causal heterogeneity.
+
+ThSQCA v0.2.0 addresses this by:
+
+1. **Detecting** when multiple solutions exist
+2. **Extracting** essential prime implicants (terms common to all solutions)
+3. **Identifying** selective prime implicants and unique terms
+
+## Essential vs. Selective Prime Implicants
+
+Understanding the distinction between essential and selective prime implicants is essential for robust QCA interpretation:
+
+| Type | Definition | Interpretation |
+|------|------------|----------------|
+| **Essential prime implicants** | Present in ALL solutions | Robust findings; essential causal factors |
+| **Selective prime implicants** | Present in SOME but not all solutions | Context-dependent; may vary across cases |
+| **Unique terms** | Present in only ONE specific solution | Solution-specific; least robust |
+
+## Using `extract_mode`
+
+The `extract_mode` parameter controls how solutions are extracted:
+
+### Mode: "first" (Default)
+```{r, eval=FALSE}
+# Returns only the first solution (M1)
+# Backward compatible with v0.1.x
+result <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7),
+  extract_mode = "first"  # Default
+)
+```
+
+### Mode: "all"
+```{r, eval=FALSE}
+# Returns all solutions concatenated
+# Useful for seeing all equivalent solutions
+result_all <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7),
+  extract_mode = "all"
+)
+
+# Output includes n_solutions column
+head(result_all$summary)
+# expression column shows: "M1: A*B + C; M2: A*B + D; M3: ..."
+```
+
+### Mode: "essential"
+```{r, eval=FALSE}
+# Returns essential prime implicants (terms common to all solutions)
+# Best for identifying robust findings
+result_essential <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7),
+  extract_mode = "essential"
+)
+
+# Output includes:
+# - expression: essential prime implicants
+# - selective_terms: terms in some but not all solutions
+# - unique_terms: solution-specific terms
+# - n_solutions: number of equivalent solutions
+```
+
+## Practical Example
+
+Consider a scenario where QCA produces three equivalent solutions:
+
+- M1: `A*B + C → Y`
+- M2: `A*B + D → Y`
+- M3: `A*B + E → Y`
+
+The analysis reveals:
+
+| Component | Terms | Interpretation |
+|-----------|-------|----------------|
+| Essential (EPI) | `A*B` | Present in all three solutions; robust finding |
+| Selective (SPI) | `C, D, E` | Each appears in one solution; context-dependent |
+| Unique (M1) | `C` | Only in solution 1 |
+| Unique (M2) | `D` | Only in solution 2 |
+| Unique (M3) | `E` | Only in solution 3 |
+
+**Recommendation**: Report the essential prime implicants (`A*B → Y`) as your main finding, and discuss the selective prime implicants as alternative pathways in your discussion section.
+
+---
+
+# Generating Reports (New in v0.2.0)
+
+## Overview
+
+The `generate_report()` function creates comprehensive markdown reports from your analysis results. This automates the documentation process and ensures reproducibility.
+
+## Report Formats
+
+### Full Report
+
+Contains comprehensive analysis details:
+
+- Analysis settings (for reproducibility)
+- Summary table across all thresholds
+- Per-threshold detailed results
+- All solution formulas
+- Essential and selective prime implicants
+- Fit measures (consistency, coverage, PRI)
+- Configuration charts (New in v0.5.0)
+
+```{r, eval=FALSE}
+# Generate full report
+generate_report(res_ots, "my_analysis_full.md", dat = dat, format = "full")
+```
+
+### Simple Report
+
+Designed for journal manuscripts:
+
+- Condensed format
+- Essential information only
+- Ready for supplementary materials
+
+```{r, eval=FALSE}
+# Generate simple report
+generate_report(res_ots, "my_analysis_simple.md", dat = dat, format = "simple")
+```
+
+## Using Reports Effectively
+
+### For Research Papers
+
+1. Run analysis with `return_details = TRUE` (default in v0.2.0)
+2. Generate a **simple report** for the main manuscript
+3. Generate a **full report** for supplementary materials
+
+```{r, eval=FALSE}
+# Complete workflow
+result <- otSweep(
+  dat = mydata,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+
+# For main text
+generate_report(result, "manuscript_results.md", dat = mydata, format = "simple")
+
+# For supplementary materials
+generate_report(result, "supplementary_full.md", dat = mydata, format = "full")
+```
+
+### Accessing Analysis Parameters
+
+All analysis parameters are stored in `result$params` for reproducibility:
+
+```{r, eval=FALSE}
+# View stored parameters
+result$params
+
+# Includes:
+# - outcome, conditions: variable names
+# - thrX, thrY: threshold values
+# - incl.cut, n.cut, pri.cut: QCA parameters
+# - dir.exp, include: minimization settings
+```
+
+---
+
+# Best Practices
+
+## Start Small, Then Expand
+
+When using sweep functions, the number of QCA analyses grows quickly. A systematic approach prevents wasted computation:
+
+### Step 1: Single Value Test
+```{r, eval=FALSE}
+# Test with a single threshold first
+result <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 7,  # Single value
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+```
+
+### Step 2: Small Range
+```{r, eval=FALSE}
+# Expand to a small range
+result <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:7,  # Small range
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+```
+
+### Step 3: Full Analysis
+```{r, eval=FALSE}
+# Run full analysis only after confirming it works
+result <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 5:9,  # Full range
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+```
+
+## Computational Complexity
+
+Understanding computational complexity helps plan your analysis:
+
+| Function | Complexity | Example | Analyses |
+|----------|------------|---------|----------|
+| `otSweep()` | O(n) | 5 Y thresholds | 5 |
+| `ctSweepS()` | O(n) | 5 X thresholds | 5 |
+| `ctSweepM()` | O(m^k) | 3 thresholds × 3 conditions | 27 |
+| `dtSweep()` | O(n × m^k) | 3 Y × 3^3 X | 81 |
+
+### Managing Large Sweeps
+
+For `dtSweep()` and `ctSweepM()`, reduce conditions first:
+
+```{r, eval=FALSE}
+# Manageable: 2 × 2 × 2 = 8 combinations
+sweep_list <- list(X1 = 6:7, X2 = 6:7, X3 = 6:7)
+
+# Caution: 5 × 5 × 5 = 125 combinations
+sweep_list <- list(X1 = 5:9, X2 = 5:9, X3 = 5:9)
+
+# Avoid: 5 × 5 × 5 × 5 × 5 = 3125 combinations!
+sweep_list <- list(X1 = 5:9, X2 = 5:9, X3 = 5:9, X4 = 5:9, X5 = 5:9)
+```
+
+## Interpreting Results
+
+### When Solutions Are Stable
+
+If the same solution appears across multiple thresholds, your findings are robust:
+
+```
+thrY | expression    | inclS | covS
+-----|---------------|-------|------
+6    | A*B + C → Y   | 0.85  | 0.72
+7    | A*B + C → Y   | 0.88  | 0.68
+8    | A*B + C → Y   | 0.91  | 0.65
+```
+
+**Interpretation**: The solution `A*B + C` is robust across threshold variations.
+
+### When Solutions Change
+
+If solutions vary significantly, investigate the threshold sensitivity:
+
+```
+thrY | expression    | inclS | covS
+-----|---------------|-------|------
+6    | A*B + C → Y   | 0.82  | 0.75
+7    | A*B → Y       | 0.89  | 0.62
+8    | B*D → Y       | 0.93  | 0.45
+```
+
+**Interpretation**: Results are threshold-sensitive. Consider reporting the most theoretically justified threshold with appropriate caveats.
+
+---
+
+# Negated Outcome Analysis (New in v0.3.0)
+
+## Why Analyze Negated Outcomes?
+
+In QCA, researchers typically analyze conditions sufficient for the **presence** of an outcome (Y = 1). However, understanding conditions for the **absence** of an outcome (~Y) can provide equally valuable insights:
+
+- What conditions lead to project **failure** (not success)?
+- What factors contribute to customer **dissatisfaction** (not satisfaction)?
+- What explains policy **non-adoption** (not adoption)?
+
+## Using the `~` Notation
+
+ThSQCA v0.3.0 supports the QCA package's tilde (`~`) notation for negated outcomes:
+
+```{r, eval=FALSE}
+# Analyze conditions for Y >= threshold (standard)
+result_Y <- otSweep(
+  dat = dat,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+
+# Analyze conditions for Y < threshold (negated)
+result_negY <- otSweep(
+  dat = dat,
+  outcome = "~Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = c(X1 = 7, X2 = 7, X3 = 7)
+)
+```
+
+## Interpreting Negated Results
+
+When using `~Y`, the solution shows conditions sufficient for the **absence** of the outcome:
+
+| Analysis | Solution Example | Interpretation |
+|----------|------------------|----------------|
+| `outcome = "Y"` | `X1*X2 + X3` | High X1 AND X2, OR high X3 → High Y |
+| `outcome = "~Y"` | `~X1*~X3 + ~X2*~X3` | Low X1 AND X3, OR low X2 AND X3 → Low Y |
+
+**Note**: Negated conditions (`~X1`) in the solution mean the **absence** of that condition (below threshold).
+
+## All Sweep Functions Support Negation
+
+```{r, eval=FALSE}
+# ctSweepS with negated outcome
+result <- ctSweepS(
+  dat = dat,
+  outcome = "~Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_var = "X3",
+  sweep_range = 6:8,
+  thrY = 7,
+  thrX_default = 7
+)
+
+# ctSweepM with negated outcome
+result <- ctSweepM(
+  dat = dat,
+  outcome = "~Y",
+  conditions = c("X1", "X2"),
+  sweep_list = list(X1 = 6:7, X2 = 6:7),
+  thrY = 7
+)
+
+# dtSweep with negated outcome
+result <- dtSweep(
+  dat = dat,
+  outcome = "~Y",
+  conditions = c("X1", "X2"),
+  sweep_list_X = list(X1 = 6:7, X2 = 7),
+  sweep_range_Y = 6:8
+)
+```
+
+## Checking Negation in Results
+
+The `params` object stores whether negation was used:
+
+```{r, eval=FALSE}
+result <- otSweep(dat = dat, outcome = "~Y", ...)
+
+# Check if negated
+result$params$negate_outcome
+# [1] TRUE
+
+result$params$outcome
+# [1] "~Y"
+```
+
+---
+
+# Fiss (2011) Core/Peripheral Classification (New in v1.3.2)
+
+## What Is the Core/Peripheral Distinction?
+
+Fiss (2011) introduced a critical refinement to QCA configuration tables
+that is now standard in the *Academy of Management Journal* and other top
+management journals. Beyond simply indicating whether a condition is present
+or absent in a solution, Fiss distinguishes between:
+
+| Type | Definition | Symbol |
+|------|------------|--------|
+| **Core condition** | Appears in BOTH the parsimonious AND intermediate solutions | ● (large) |
+| **Peripheral condition** | Appears in the intermediate solution ONLY | ⊙ (small) |
+
+The intuition is straightforward: conditions that survive even the most
+aggressive simplification (parsimonious solution) are more central to the
+causal story than conditions that only appear when theoretical constraints
+are applied (intermediate solution).
+
+> **Why this matters:** Prior to v1.3.2, ThSQCA configuration charts treated
+> all conditions as equivalent, using only two symbols. This is technically
+> incorrect per Fiss (2011) and may raise concerns from reviewers at
+> journals that require Fiss notation.
+
+## The Four-Symbol Set
+
+```
+● = core condition present      (large filled circle)
+⊗ = core condition absent       (large circle-times)
+⊙ = peripheral condition present (small circled dot)
+⊘ = peripheral condition absent  (small circled slash)
+  = don't care (blank)
+```
+
+For LaTeX / academic PDF output: `$\bullet$`, `$\otimes$`, `$\odot$`, `$\oslash$`.
+
+## Workflow
+
+`compute_fiss_core()` requires three conditions from the original sweep:
+
+1. `include = "?"` — logical remainders must be enabled
+2. `dir.exp` specified — intermediate solution must have been requested
+3. `return_details = TRUE` — truth tables must be stored
+
+```{r, eval=FALSE}
+library(ThSQCA)
+data(sample_data)
+
+# Step 1: Run intermediate sweep (all three conditions above are met)
+res <- otSweep(
+  dat        = sample_data,
+  outcome    = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX       = c(X1 = 7, X2 = 7, X3 = 7),
+  include    = "?",           # required
+  dir.exp    = c(1, 1, 1),   # required
+  return_details = TRUE       # required
+)
+
+# Step 2: Compute Fiss core/peripheral classification
+# For each threshold, compute_fiss_core() re-runs QCA::minimize()
+# with dir.exp = NULL to obtain the parsimonious solution,
+# then compares it to the stored intermediate solution.
+res_fiss <- compute_fiss_core(res, conditions = c("X1", "X2", "X3"))
+
+# Step 3: Inspect a specific threshold
+print_fiss_summary(res_fiss, thr_key = "7")
+
+# Step 4: Generate Fiss-style four-symbol chart
+cat(generate_fiss_chart(res_fiss, symbol_set = "unicode"))
+
+# For academic papers (LaTeX)
+cat(generate_fiss_chart(res_fiss, symbol_set = "latex"))
+
+# Step 5: Include in report
+generate_report(
+  res_fiss,
+  output_file      = "fiss_report.md",
+  format           = "full",
+  include_fiss_core = TRUE,          # activates four-symbol charts
+  chart_symbol_set  = "unicode"
+)
+```
+
+## Reading the Output
+
+`print_fiss_summary()` shows the classification term-by-term:
+
+```
+=== Fiss Core/Peripheral Classification (thrY = 7) ===
+Parsimonious : X1*X2
+Intermediate : X3 + X1*X2
+
+[Term M1] X3
+  Periph. present : X3
+
+[Term M2] X1*X2
+  Core present    : X1, X2
+```
+
+**Interpretation:** X1 and X2 are core (they appear in the parsimonious
+solution `X1*X2`). X3 is peripheral — it only appears when theory-guided
+directional expectations are applied (intermediate solution), suggesting
+it plays a supporting rather than essential causal role.
+
+## What If All Conditions Are Core?
+
+When the parsimonious and intermediate solutions are identical, all
+conditions are core and no conditions are peripheral. This indicates
+maximum theoretical parsimony.
+
+## Reference
+
+Fiss, P. C. (2011). Building better causal theories: A fuzzy set approach
+to typologies in organization research. *Academy of Management Journal*,
+54(2), 393–420. doi:10.5465/amj.2011.60263120
+
+---
+
+# Configuration Charts (New in v0.5.0)
+
+ThSQCA can generate Fiss-style configuration charts (Table 5 format) commonly used in QCA publications.
+
+## Automatic Inclusion in Reports
+
+Configuration charts are now automatically included in reports generated by `generate_report()`:
+
+```{r eval=FALSE}
+# Generate report with configuration charts (default)
+generate_report(result, "my_report.md", dat = dat, format = "full")
+
+# Disable charts if needed
+generate_report(result, "my_report.md", dat = dat, include_chart = FALSE)
+
+# Use LaTeX symbols for academic papers
+generate_report(result, "my_report.md", dat = dat, chart_symbol_set = "latex")
+
+# Include QCA package raw output for verification (default is TRUE)
+generate_report(result, "my_report.md", dat = dat, include_raw_output = TRUE)
+
+# Disable raw output if not needed
+generate_report(result, "my_report.md", dat = dat, include_raw_output = FALSE)
+```
+
+**Note (v1.2.0)**: Reports now display the **Solution Type** (Complex/Parsimonious/Intermediate) in the Analysis Overview section, and optionally include raw QCA package output for verification purposes.
+
+## Standalone Chart Functions
+
+You can also generate configuration charts directly:
+
+```{r}
+# From path strings
+paths <- c("A*B*~C", "A*D", "B*E")
+chart <- config_chart_from_paths(paths)
+cat(chart)
+```
+
+### Symbol Sets
+
+Three symbol sets are available:
+
+```{r}
+# ASCII (maximum compatibility)
+cat(config_chart_from_paths(paths, symbol_set = "ascii"))
+```
+
+```{r eval=FALSE}
+# LaTeX (for PDF/academic papers)
+cat(config_chart_from_paths(paths, symbol_set = "latex"))
+# Output: $\bullet$ for presence, $\otimes$ for absence
+```
+
+### Multiple Solutions
+
+When you have multiple equivalent solutions:
+
+```{r}
+solutions <- list(
+  c("A*B", "C*D"),
+  c("A*B", "C*E")
+)
+chart <- config_chart_multi_solutions(solutions)
+cat(chart)
+```
+
+---
+
+# Conclusion
+
+ThSQCA provides a structured and reproducible way to evaluate  
+how threshold choices influence QCA results.
+
+Using CTS, MCTS, OTS, and DTS sweeps, researchers can:
+
+- assess robustness,
+- identify stable causal patterns,
+- detect threshold-sensitive relationships,
+- and strengthen QCA validity.
+
+**New in v1.3.2:**
+
+- `compute_fiss_core()`: Augments sweep results with Fiss (2011) core/peripheral classification
+- `generate_fiss_chart()`: Four-symbol configuration charts (●/⊗/⊙/⊘) for academic publications
+- `print_fiss_summary()`: Human-readable core/peripheral breakdown per threshold
+- `generate_report(..., include_fiss_core = TRUE)`: Reports with full Fiss notation
+
+**New in v1.3.0:**
+
+- `pre_calibrated` argument: mixed crisp/fuzzy workflow for all four sweep functions
+
+**New in v1.1.0:**
+
+- QCA-compatible defaults: `include = ""` and `dir.exp = NULL` (complex solution)
+- Clear documentation of three solution types (complex, parsimonious, intermediate)
+- Fixed critical bug in `dir.exp` handling
+
+**New in v0.5.0:**
+
+- Configuration charts automatically included in reports
+- New parameters: `include_chart`, `chart_symbol_set`
+- Standalone chart functions: `config_chart_from_paths()`, `config_chart_multi_solutions()`
+
+**New in v0.3.0:**
+
+- QCA-compatible argument names (`outcome`, `conditions`)
+- Negated outcome support (`~Y` notation)
+- Backward compatibility with deprecation warnings
+
+**New in v0.2.0:**
+
+- Detect and analyze multiple equivalent solutions
+- Extract essential prime implicants for robust findings
+- Generate comprehensive reports automatically
+- Access stored parameters for reproducibility
+
+---
+
+# Verification for Academic Publications
+
+**For academic publications**, we strongly recommend verifying ThSQCA results directly with the QCA package before submission. This ensures accuracy and reproducibility.
+
+## Recommended Verification Workflow
+
+```{r eval=FALSE}
+library(QCA)
+library(ThSQCA)
+
+# Step 1: Run ThSQCA analysis
+data(sample_data)
+thrX <- c(X1 = 7, X2 = 7, X3 = 7)
+
+result <- otSweep(
+  dat = sample_data,
+  outcome = "Y",
+  conditions = c("X1", "X2", "X3"),
+  sweep_range = 6:8,
+  thrX = thrX,
+  include = "?",
+  dir.exp = c(1, 1, 1),
+  return_details = TRUE
+)
+
+# Step 2: Generate report with QCA output for verification
+generate_report(result, "my_analysis.md", dat = sample_data, 
+                include_raw_output = TRUE)  # Default is TRUE
+
+# Step 3: Verify key results directly with QCA package
+# For each important threshold, run QCA::minimize() directly
+dat_bin <- sample_data
+dat_bin$Y_bin <- ifelse(sample_data$Y >= 7, 1, 0)
+dat_bin$X1_bin <- ifelse(sample_data$X1 >= 7, 1, 0)
+dat_bin$X2_bin <- ifelse(sample_data$X2 >= 7, 1, 0)
+dat_bin$X3_bin <- ifelse(sample_data$X3 >= 7, 1, 0)
+
+tt <- truthTable(dat_bin, outcome = "Y_bin", 
+                 conditions = c("X1_bin", "X2_bin", "X3_bin"),
+                 incl.cut = 0.8)
+sol <- minimize(tt, include = "?", dir.exp = c(1, 1, 1))
+print(sol)  # Compare with ThSQCA report
+```
+
+## Why Verification Matters
+
+1. **Accuracy**: Confirms ThSQCA extraction matches QCA package output
+2. **Reproducibility**: Provides independent verification for reviewers
+3. **Transparency**: Documents the analysis pipeline clearly
+
+## What to Check
+
+- Solution expressions match exactly
+- Consistency and coverage values match
+- Number of solutions (M1, M2, ...) is correct
+
+> **Tip**: The "QCA Package Output" section in ThSQCA reports (enabled by `include_raw_output = TRUE`) shows the direct `print(sol)` output for easy comparison.
+
+
+## References
+
+For more information on TS-QCA methodology, see:
+
+- Ragin, C. C. (2008). *Redesigning Social Inquiry: Fuzzy Sets and Beyond*. University of Chicago Press. DOI: [10.7208/chicago/9780226702797.001.0001](https://doi.org/10.7208/chicago/9780226702797.001.0001)
+- Duşa, A. (2019). *QCA with R: A Comprehensive Resource*. Springer. DOI: [10.1007/978-3-319-75668-4](https://doi.org/10.1007/978-3-319-75668-4)
+- Oana, I.-E., & Schneider, C. Q. (2024). A Robustness Test Protocol for Applied QCA: Theory and R Software Application. *Sociological Methods & Research*, 53(1), 57–88. DOI: [10.1177/00491241211036158](https://doi.org/10.1177/00491241211036158)
+
+
+
+# Session Info
+```{r}
+sessionInfo()
+```

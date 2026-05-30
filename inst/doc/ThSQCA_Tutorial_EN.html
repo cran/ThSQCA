@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>ThSQCA Tutorial (English)</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">ThSQCA Tutorial (English)</h1>
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Threshold-Sweep QCA (TS-QCA) is a framework for systematically
+exploring how different threshold settings affect the results of
+crisp-set Qualitative Comparative Analysis (QCA).<br />
+In crisp-set QCA, the researcher must choose thresholds to binarize:</p>
+<ul>
+<li>the outcome <strong>Y</strong>, and</li>
+<li>the conditions <strong>X</strong>.</li>
+</ul>
+<p>Small changes in these thresholds may lead to substantial differences
+in truth tables and minimized solutions.</p>
+<p>TS-QCA provides:</p>
+<ul>
+<li>a <strong>systematic</strong> way to vary thresholds,</li>
+<li>a <strong>transparent</strong> way to evaluate sensitivity,</li>
+<li>and a <strong>reproducible</strong> workflow for robustness
+assessment.</li>
+</ul>
+<p>The <code>ThSQCA</code> package implements four sweep methods:</p>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="26%" />
+<col width="36%" />
+<col width="20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>What varies</th>
+<th>What stays fixed</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>CTS–QCA</strong></td>
+<td>One X threshold</td>
+<td>Y + other Xs</td>
+<td>Evaluate influence of a single condition</td>
+</tr>
+<tr class="even">
+<td><strong>MCTS–QCA</strong></td>
+<td>Multiple X thresholds</td>
+<td>Y</td>
+<td>Explore combinations of X thresholds</td>
+</tr>
+<tr class="odd">
+<td><strong>OTS–QCA</strong></td>
+<td>Y threshold</td>
+<td>All Xs</td>
+<td>Assess robustness to Y calibration</td>
+</tr>
+<tr class="even">
+<td><strong>DTS–QCA</strong></td>
+<td>X and Y thresholds</td>
+<td>None</td>
+<td>Full 2D sensitivity analysis</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Scope:</strong> This package focuses on <strong>sufficiency
+analysis</strong>—identifying condition combinations that are sufficient
+for an outcome. Necessity analysis (whether a condition is required for
+an outcome) involves different logical structures and evaluation
+metrics, and is planned for future versions.</p>
+</blockquote>
+<blockquote>
+<p><strong>Important (v1.2.0)</strong>: Version 1.2.0 fixed a critical
+bug where intermediate solutions (using <code>dir.exp</code>) were
+incorrectly extracted. If you used intermediate solutions in previous
+versions, please re-run your analyses. Reports now also display the
+Solution Type and include optional QCA package output for
+verification.</p>
+</blockquote>
+<hr />
+</div>
+<div id="three-types-of-qca-solutions-new-in-v1.1.0" class="section level1">
+<h1>Three Types of QCA Solutions (New in v1.1.0)</h1>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>QCA minimization can produce three types of solutions depending on
+how <strong>logical remainders</strong> (unobserved configurations) are
+handled:</p>
+<table>
+<colgroup>
+<col width="20%" />
+<col width="16%" />
+<col width="16%" />
+<col width="27%" />
+<col width="19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Solution Type</th>
+<th><code>include</code></th>
+<th><code>dir.exp</code></th>
+<th>Logical Remainders</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Complex</strong> (default)</td>
+<td><code>&quot;&quot;</code></td>
+<td><code>NULL</code></td>
+<td>Not used</td>
+<td>Most conservative; only observed configurations</td>
+</tr>
+<tr class="even">
+<td><strong>Parsimonious</strong></td>
+<td><code>&quot;?&quot;</code></td>
+<td><code>NULL</code></td>
+<td>All used</td>
+<td>Most simplified; uses all remainders</td>
+</tr>
+<tr class="odd">
+<td><strong>Intermediate</strong></td>
+<td><code>&quot;?&quot;</code></td>
+<td><code>c(1,1,...)</code></td>
+<td>Theory-guided</td>
+<td>Uses remainders consistent with theory</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="qca-compatible-defaults-v1.1.0" class="section level2">
+<h2>QCA-Compatible Defaults (v1.1.0)</h2>
+<p>As of v1.1.0, ThSQCA uses the <strong>same defaults</strong> as
+<code>QCA::minimize()</code>:</p>
+<ul>
+<li><code>include = &quot;&quot;</code> → Does not include logical remainders</li>
+<li><code>dir.exp = NULL</code> → No directional expectations</li>
+</ul>
+<p>This produces the <strong>complex (conservative) solution</strong> by
+default.</p>
+</div>
+<div id="example-computing-all-three-solutions" class="section level2">
+<h2>Example: Computing All Three Solutions</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ThSQCA)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">data</span>(sample_data)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>thrX <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="co"># 1. Complex Solution (default, most conservative)</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>result_comp <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">dat =</span> sample_data,</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">7</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">thrX =</span> thrX</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="co"># include = &quot;&quot; (default), dir.exp = NULL (default)</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Complex Solution:&quot;</span>, result_comp<span class="sc">$</span>summary<span class="sc">$</span>expression, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co">#&gt; Complex Solution: ~X1*X3 + ~X2*X3 + X1*X2*~X3</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co"># 2. Parsimonious Solution (uses all logical remainders)</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>result_pars <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="at">dat =</span> sample_data,</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">7</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>  <span class="at">thrX =</span> thrX,</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>  <span class="at">include =</span> <span class="st">&quot;?&quot;</span>  <span class="co"># Include logical remainders</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Parsimonious Solution:&quot;</span>, result_pars<span class="sc">$</span>summary<span class="sc">$</span>expression, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a><span class="co">#&gt; Parsimonious Solution: X3 + X1*X2</span></span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a><span class="co"># 3. Intermediate Solution (theory-guided remainders)</span></span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>result_int <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>  <span class="at">dat =</span> sample_data,</span>
+<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">7</span>,</span>
+<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a>  <span class="at">thrX =</span> thrX,</span>
+<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a>  <span class="at">include =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a>  <span class="at">dir.exp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)  <span class="co"># All conditions expected to contribute positively</span></span>
+<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a>)</span>
+<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Intermediate Solution:&quot;</span>, result_int<span class="sc">$</span>summary<span class="sc">$</span>expression, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co">#&gt; Intermediate Solution: X3 + X1*X2</span></span></code></pre></div>
+</div>
+<div id="when-to-use-each-solution" class="section level2">
+<h2>When to Use Each Solution</h2>
+<table>
+<colgroup>
+<col width="28%" />
+<col width="37%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Solution</th>
+<th>When to Use</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Complex</strong></td>
+<td>Exploratory analysis, maximum caution</td>
+<td>No assumptions about unobserved cases</td>
+<td>Often too complex for interpretation</td>
+</tr>
+<tr class="even">
+<td><strong>Parsimonious</strong></td>
+<td>Robustness checks, simplicity</td>
+<td>Most simplified form</td>
+<td>May rely on implausible assumptions</td>
+</tr>
+<tr class="odd">
+<td><strong>Intermediate</strong></td>
+<td>Theory-driven analysis, publications</td>
+<td>Balances parsimony and theory</td>
+<td>Requires theoretical justification</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> The <strong>intermediate solution</strong> is
+most commonly reported in QCA publications (Ragin, 2008; Fiss, 2011), as
+it incorporates theoretical knowledge while avoiding implausible
+simplifying assumptions.</p>
+</blockquote>
+</div>
+<div id="migration-from-v1.0.0" class="section level2">
+<h2>Migration from v1.0.0</h2>
+<p>If you were using ThSQCA v1.0.0, note that the default behavior has
+changed:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># v1.0.0 (intermediate solution by default due to bug)</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(dat, <span class="st">&quot;Y&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>), <span class="at">sweep_range =</span> <span class="dv">7</span>, <span class="at">thrX =</span> thrX)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># v1.1.0: To get the same result as v1.0.0, explicitly specify:</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">dat =</span> sample_data,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">7</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">thrX =</span> thrX,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">include =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="at">dir.exp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)  <span class="co"># Explicit intermediate solution</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="data-requirements" class="section level1">
+<h1>Data Requirements</h1>
+<p>TS-QCA assumes:</p>
+<ul>
+<li>TS-QCA handles any numeric data (continuous, interval, or ordinal
+scales). Pre-calibration is NOT required because raw scores (e.g., 1–85
+scale) are binarized directly at specified thresholds.</li>
+<li>Ordinal data can be analyzed directly, enabling analyses that are
+difficult with fsQCA (which requires continuous membership values).</li>
+<li>Thresholds can be any numeric value (integer or real).</li>
+<li>Missing values should be handled before running sweeps.</li>
+</ul>
+<p>Example dataset structure:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(ThSQCA)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;sample_data&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>dat <span class="ot">&lt;-</span> sample_data</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">str</span>(dat)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    80 obs. of  4 variables:</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;  $ Y : int  8 4 5 7 2 2 7 5 3 8 ...</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt;  $ X1: int  7 2 6 8 8 9 8 8 1 5 ...</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt;  $ X2: int  7 5 8 4 0 5 8 4 4 2 ...</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;  $ X3: int  1 6 6 5 3 4 5 3 6 8 ...</span></span></code></pre></div>
+<p>Define outcome and conditions:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>outcome  <span class="ot">&lt;-</span> <span class="st">&quot;Y&quot;</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>conditions <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>)</span></code></pre></div>
+<hr />
+</div>
+<div id="working-with-mixed-data-types" class="section level1">
+<h1>Working with Mixed Data Types</h1>
+<div id="handling-binary-and-continuous-variables" class="section level2">
+<h2>Handling Binary and Continuous Variables</h2>
+<p>In real-world social science research, datasets often contain
+<strong>both binary variables</strong> (e.g., gender, yes/no responses)
+<strong>and continuous variables</strong> (e.g., sales, satisfaction
+scores). When using ThSQCA with such mixed data, special attention is
+required.</p>
+<div id="key-principles" class="section level3">
+<h3>Key Principles</h3>
+<ol style="list-style-type: decimal">
+<li><strong>Do NOT sweep binary variables</strong> — they are already
+binarized (0/1)</li>
+<li><strong>Use threshold = 1 for binary variables</strong> to preserve
+their original values</li>
+<li><strong>Explicitly specify thresholds</strong> for each variable in
+<code>sweep_list</code></li>
+</ol>
+</div>
+<div id="why-threshold-1-for-binary-variables" class="section level3">
+<h3>Why Threshold = 1 for Binary Variables?</h3>
+<p>The internal <code>qca_bin()</code> function uses the rule
+<code>x &gt;= thr</code> for binarization:</p>
+<ul>
+<li>If <code>x = 0</code>: <code>0 &gt;= 1</code> → FALSE →
+<strong>0</strong> (preserved)</li>
+<li>If <code>x = 1</code>: <code>1 &gt;= 1</code> → TRUE →
+<strong>1</strong> (preserved)</li>
+</ul>
+<p>This ensures that binary variables remain unchanged during the
+binarization process.</p>
+</div>
+<div id="practical-example-mixed-data" class="section level3">
+<h3>Practical Example: Mixed Data</h3>
+<p>Suppose your dataset has:</p>
+<ul>
+<li><strong>X1</strong>: Gender (0 = Male, 1 = Female) — binary
+variable</li>
+<li><strong>X2</strong>: Product Quality Score (0-10) — continuous
+variable</li>
+<li><strong>X3</strong>: Store Atmosphere Score (0-10) — continuous
+variable</li>
+</ul>
+<p>When using <code>ctSweepM()</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># CORRECT: Specify threshold explicitly for each variable</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="dv">1</span>,      <span class="co"># Binary variable: use threshold 1</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,    <span class="co"># Continuous: sweep thresholds</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">X3 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>     <span class="co"># Continuous: sweep thresholds</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>)</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># Using intermediate solution (most common in publications)</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>res_mixed <span class="ot">&lt;-</span> <span class="fu">ctSweepM</span>(</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="at">sweep_list     =</span> sweep_list,</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="at">thrY           =</span> <span class="dv">7</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  <span class="at">include        =</span> <span class="st">&quot;?&quot;</span>,           <span class="co"># Include logical remainders</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)     <span class="co"># Directional expectations (intermediate)</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>)</span></code></pre></div>
+<p>This explores 1 × 3 × 3 = <strong>9 threshold combinations</strong>,
+treating X1 as a fixed binary condition while sweeping X2 and X3.</p>
+</div>
+<div id="common-mistake" class="section level3">
+<h3>Common Mistake</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># WRONG: Using sweep range for binary variables</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,    <span class="co"># All values become 0 (since 0 &lt; 6 and 1 &lt; 6)</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">X3 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>)</span></code></pre></div>
+<p>If you accidentally specify <code>X1 = 6:8</code>, both 0 and 1 will
+fail the <code>&gt;= 6</code> condition, making all X1 values become 0.
+This destroys the information in your binary variable.</p>
+</div>
+<div id="best-practice" class="section level3">
+<h3>Best Practice</h3>
+<p>Always examine your data structure before setting up threshold
+sweeps:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Check variable ranges</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">summary</span>(dat[, <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>)])</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># Identify binary variables (only 0 and 1)</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">sapply</span>(dat[, <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>)], <span class="cf">function</span>(x) {</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  unique_vals <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">unique</span>(x))</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(unique_vals) <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;&amp;</span> <span class="fu">all</span>(unique_vals <span class="sc">==</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))) {</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="st">&quot;Binary (use threshold = 1)&quot;</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="fu">paste</span>(<span class="st">&quot;Continuous (range:&quot;</span>, <span class="fu">min</span>(x), <span class="st">&quot;-&quot;</span>, <span class="fu">max</span>(x), <span class="st">&quot;)&quot;</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  }</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>})</span></code></pre></div>
+</div>
+</div>
+<div id="using-pre-calibrated-fuzzy-conditions-pre_calibrated" class="section level2">
+<h2>Using Pre-Calibrated Fuzzy Conditions
+(<code>pre_calibrated</code>)</h2>
+<p>Version 1.3.0 introduces the <code>pre_calibrated</code> argument to
+all four sweep functions (<code>otSweep</code>, <code>ctSweepS</code>,
+<code>ctSweepM</code>, <code>dtSweep</code>). This argument enables a
+<strong>mixed crisp/fuzzy</strong> workflow: some conditions can be
+passed as fuzzy-set membership scores (values in [0, 1] produced by
+<code>QCA::calibrate()</code>), while other conditions are swept on
+their raw scale as usual.</p>
+<div id="how-it-works" class="section level3">
+<h3>How it works</h3>
+<ul>
+<li>Variables listed in <code>pre_calibrated</code> are passed directly
+to <code>QCA::truthTable()</code> <strong>without
+binarization</strong>.</li>
+<li>All other conditions are binarized using <code>qca_bin()</code> at
+the thresholds specified in <code>thrX</code>.</li>
+<li>Pre-calibrated variables do not require a <code>thrX</code> entry,
+since no binarization is applied to them.</li>
+</ul>
+</div>
+<div id="validation" class="section level3">
+<h3>Validation</h3>
+<p>The function raises an error if:</p>
+<ul>
+<li>A variable listed in <code>pre_calibrated</code> is not found in
+<code>conditions</code>.</li>
+<li>Its values fall outside the [0, 1] range (indicating that a
+raw-scale variable was passed by mistake).</li>
+</ul>
+<p>A warning is issued if the variable contains <code>NA</code>
+values.</p>
+</div>
+<div id="sweep-variables-vs.-pre-calibrated-variables" class="section level3">
+<h3>Sweep variables vs. pre-calibrated variables</h3>
+<p>Sweep variables should be kept on their <strong>raw (original)
+scale</strong>. When you sweep a variable on its raw scale (e.g., Likert
+scores 6, 7, 8), each threshold carries direct substantive meaning.
+Pre-calibrating a sweep variable into fuzzy values and then sweeping
+over those values (e.g., 0.3, 0.5, 0.7) makes interpretation indirect
+and harder to justify.</p>
+<p>If a variable appears in both <code>pre_calibrated</code> and a sweep
+list, ThSQCA issues a warning and uses the pre-calibrated values,
+ignoring the sweep thresholds.</p>
+</div>
+<div id="recommended-practice" class="section level3">
+<h3>Recommended practice</h3>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable type</th>
+<th>Recommended approach</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conditions you want to sweep</td>
+<td>Keep on raw scale; use <code>qca_bin()</code> via
+<code>thrX</code></td>
+</tr>
+<tr class="even">
+<td>Conditions with theoretically grounded fuzzy calibration</td>
+<td>Pre-calibrate and list in <code>pre_calibrated</code></td>
+</tr>
+<tr class="odd">
+<td>Binary conditions (0/1)</td>
+<td>Use <code>thrX = 1</code>; optionally list in
+<code>pre_calibrated</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>A worked example with sample data will be added in a future
+release.</em></p>
+<hr />
+</div>
+</div>
+</div>
+<div id="ctsqca-single-condition-sweep-ctsweeps" class="section level1">
+<h1>CTS–QCA: Single-Condition Sweep (<code>ctSweepS</code>)</h1>
+<p>CTS–QCA varies the threshold for <strong>one X condition</strong>,
+keeping the others fixed.</p>
+<div id="default-complex-solution" class="section level2">
+<h2>Default: Complex Solution</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>sweep_var   <span class="ot">&lt;-</span> <span class="st">&quot;X3&quot;</span>   <span class="co"># Condition (X) whose threshold is swept</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>sweep_range <span class="ot">&lt;-</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">9</span>    <span class="co"># Candidate threshold values to evaluate</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>thrY         <span class="ot">&lt;-</span> <span class="dv">7</span>     <span class="co"># Outcome (Y) threshold (fixed)</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>thrX_default <span class="ot">&lt;-</span> <span class="dv">7</span>     <span class="co"># Threshold for other X conditions (fixed)</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co"># Default: Complex solution (include = &quot;&quot;, dir.exp = NULL)</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>res_cts <span class="ot">&lt;-</span> <span class="fu">ctSweepS</span>(</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">sweep_var      =</span> sweep_var,</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">sweep_range    =</span> sweep_range,</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">thrY           =</span> thrY,</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">thrX_default   =</span> thrX_default,</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>)</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="fu">summary</span>(res_cts)</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; CTS-QCA Summary</span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;  threshold                  expression inclS  covS n_solutions</span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;          6                       X1*X2 1.000 0.303           1</span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;          7 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.879           1</span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;          8 ~X1*X3 + ~X2*X3 + X1*X2*~X3 1.000 0.818           1</span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;          9          ~X2*X3 + X1*X2*~X3 1.000 0.515           1</span></span></code></pre></div>
+</div>
+<div id="intermediate-solution-theory-driven" class="section level2">
+<h2>Intermediate Solution (Theory-Driven)</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Intermediate solution: specify include = &quot;?&quot; and dir.exp</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>res_cts_int <span class="ot">&lt;-</span> <span class="fu">ctSweepS</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">sweep_var      =</span> sweep_var,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">sweep_range    =</span> sweep_range,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">thrY           =</span> thrY,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">thrX_default   =</span> thrX_default,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">include        =</span> <span class="st">&quot;?&quot;</span>,           <span class="co"># Include logical remainders</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),    <span class="co"># Directional expectations</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="fu">summary</span>(res_cts_int)</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; CTS-QCA Summary</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;  threshold expression inclS  covS n_solutions</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;          6      X1*X2 1.000 0.303           1</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;          7 X3 + X1*X2 0.906 0.879           1</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;          8 X3 + X1*X2 1.000 0.818           1</span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt;          9 X3 + X1*X2 1.000 0.515           1</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="mctsqca-multiple-x-sweep-ctsweepm" class="section level1">
+<h1>MCTS–QCA: Multiple X Sweep (<code>ctSweepM</code>)</h1>
+<p>MCTS–QCA evaluates all combinations of thresholds for multiple X
+conditions.</p>
+<div id="default-complex-solution-1" class="section level2">
+<h2>Default: Complex Solution</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Create a sweep list specifying thresholds for each condition</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">X3 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># Default: Complex solution</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>res_mcts <span class="ot">&lt;-</span> <span class="fu">ctSweepM</span>(</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  <span class="at">sweep_list     =</span> sweep_list,</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="at">thrY           =</span> <span class="dv">7</span>,</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>)</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="fu">summary</span>(res_mcts)</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt; MCTS-QCA Summary</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt; ================ </span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a><span class="co">#&gt;         threshold combo_id                  expression inclS  covS n_solutions</span></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=6, X3=6        1                       X1*X2 0.833 0.455           1</span></span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=6, X3=6        2                       X1*X2 1.000 0.394           1</span></span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=7, X3=6        3                   X1*X2*~X3 0.818 0.273           1</span></span>
+<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=7, X3=6        4                       X1*X2 1.000 0.303           1</span></span>
+<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=6, X3=7        5                          X3 0.864 0.576           1</span></span>
+<span id="cb10-36"><a href="#cb10-36" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=6, X3=7        6              ~X1*X3 + X1*X2 0.931 0.818           1</span></span>
+<span id="cb10-37"><a href="#cb10-37" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=7, X3=7        7                          X3 0.864 0.576           1</span></span>
+<span id="cb10-38"><a href="#cb10-38" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=7, X3=7        8 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.879           1</span></span></code></pre></div>
+</div>
+<div id="intermediate-solution-theory-driven-1" class="section level2">
+<h2>Intermediate Solution (Theory-Driven)</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Intermediate solution: specify include = &quot;?&quot; and dir.exp</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>res_mcts_int <span class="ot">&lt;-</span> <span class="fu">ctSweepM</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">sweep_list     =</span> sweep_list,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">thrY           =</span> <span class="dv">7</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">include        =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>)</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="fu">summary</span>(res_mcts_int)</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; MCTS-QCA Summary</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt; ================ </span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;         threshold combo_id     expression inclS  covS n_solutions</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=6, X3=6        1          X1*X2 0.833 0.455           1</span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=6, X3=6        2          X1*X2 1.000 0.394           1</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=7, X3=6        3      X1*X2*~X3 0.818 0.273           1</span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=7, X3=6        4          X1*X2 1.000 0.303           1</span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=6, X3=7        5             X3 0.864 0.576           1</span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=6, X3=7        6 ~X1*X3 + X1*X2 0.931 0.818           1</span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="co">#&gt;  X1=6, X2=7, X3=7        7             X3 0.864 0.576           1</span></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt;  X1=7, X2=7, X3=7        8     X3 + X1*X2 0.906 0.879           1</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="otsqca-outcome-sweep-otsweep" class="section level1">
+<h1>OTS–QCA: Outcome Sweep (<code>otSweep</code>)</h1>
+<p>OTS–QCA varies only the threshold of <strong>Y</strong>, keeping X
+thresholds fixed.</p>
+<div id="default-complex-solution-2" class="section level2">
+<h2>Default: Complex Solution</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Default: Complex solution</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>res_ots <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">sweep_range    =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">thrX           =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="fu">summary</span>(res_ots)</span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; OTS-QCA Summary</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co">#&gt;  thrY                  expression inclS  covS n_solutions</span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="co">#&gt;     6 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.853           1</span></span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a><span class="co">#&gt;     7 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.879           1</span></span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a><span class="co">#&gt;     8                 No solution    NA    NA           0</span></span></code></pre></div>
+</div>
+<div id="intermediate-solution-theory-driven-2" class="section level2">
+<h2>Intermediate Solution (Theory-Driven)</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Intermediate solution: specify include = &quot;?&quot; and dir.exp</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>res_ots_int <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">sweep_range    =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">thrX           =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">include        =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>)</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="fu">summary</span>(res_ots_int)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; OTS-QCA Summary</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt;  thrY  expression inclS  covS n_solutions</span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt;     6  X3 + X1*X2 0.906 0.853           1</span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt;     7  X3 + X1*X2 0.906 0.879           1</span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt;     8 No solution    NA    NA           0</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="dtsqca-two-dimensional-sweep-dtsweep" class="section level1">
+<h1>DTS–QCA: Two-Dimensional Sweep (<code>dtSweep</code>)</h1>
+<p>DTS–QCA varies both <strong>X thresholds</strong> and <strong>Y
+thresholds</strong>, creating a full 2D grid.</p>
+<div id="default-complex-solution-3" class="section level2">
+<h2>Default: Complex Solution</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>sweep_list_dts_X <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">X3 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>sweep_range_dts_Y <span class="ot">&lt;-</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co"># Default: Complex solution</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>res_dts <span class="ot">&lt;-</span> <span class="fu">dtSweep</span>(</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>  <span class="at">sweep_list_X   =</span> sweep_list_dts_X,</span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>  <span class="at">sweep_range_Y  =</span> sweep_range_dts_Y,</span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>)</span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="fu">summary</span>(res_dts)</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; DTS-QCA Summary</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt;  thrY combo_id             thrX                  expression inclS  covS</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt;     6        1 X1=6, X2=6, X3=6                       X1*X2 0.833 0.441</span></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt;     7        1 X1=6, X2=6, X3=6                       X1*X2 0.833 0.455</span></span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt;     6        2 X1=7, X2=6, X3=6                       X1*X2 1.000 0.382</span></span>
+<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt;     7        2 X1=7, X2=6, X3=6                       X1*X2 1.000 0.394</span></span>
+<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt;     6        3 X1=6, X2=7, X3=6                   X1*X2*~X3 0.818 0.265</span></span>
+<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt;     7        3 X1=6, X2=7, X3=6                   X1*X2*~X3 0.818 0.273</span></span>
+<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt;     6        4 X1=7, X2=7, X3=6                       X1*X2 1.000 0.294</span></span>
+<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a><span class="co">#&gt;     7        4 X1=7, X2=7, X3=6                       X1*X2 1.000 0.303</span></span>
+<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt;     6        5 X1=6, X2=6, X3=7                          X3 0.864 0.559</span></span>
+<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt;     7        5 X1=6, X2=6, X3=7                          X3 0.864 0.576</span></span>
+<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a><span class="co">#&gt;     6        6 X1=7, X2=6, X3=7              ~X1*X3 + X1*X2 0.931 0.794</span></span>
+<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="co">#&gt;     7        6 X1=7, X2=6, X3=7              ~X1*X3 + X1*X2 0.931 0.818</span></span>
+<span id="cb14-44"><a href="#cb14-44" tabindex="-1"></a><span class="co">#&gt;     6        7 X1=6, X2=7, X3=7                          X3 0.864 0.559</span></span>
+<span id="cb14-45"><a href="#cb14-45" tabindex="-1"></a><span class="co">#&gt;     7        7 X1=6, X2=7, X3=7                          X3 0.864 0.576</span></span>
+<span id="cb14-46"><a href="#cb14-46" tabindex="-1"></a><span class="co">#&gt;     6        8 X1=7, X2=7, X3=7 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.853</span></span>
+<span id="cb14-47"><a href="#cb14-47" tabindex="-1"></a><span class="co">#&gt;     7        8 X1=7, X2=7, X3=7 ~X1*X3 + ~X2*X3 + X1*X2*~X3 0.906 0.879</span></span>
+<span id="cb14-48"><a href="#cb14-48" tabindex="-1"></a><span class="co">#&gt;  n_solutions</span></span>
+<span id="cb14-49"><a href="#cb14-49" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-50"><a href="#cb14-50" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-51"><a href="#cb14-51" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-52"><a href="#cb14-52" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-53"><a href="#cb14-53" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-54"><a href="#cb14-54" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-55"><a href="#cb14-55" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-56"><a href="#cb14-56" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-57"><a href="#cb14-57" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-58"><a href="#cb14-58" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-59"><a href="#cb14-59" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-60"><a href="#cb14-60" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-61"><a href="#cb14-61" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-62"><a href="#cb14-62" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-63"><a href="#cb14-63" tabindex="-1"></a><span class="co">#&gt;            1</span></span>
+<span id="cb14-64"><a href="#cb14-64" tabindex="-1"></a><span class="co">#&gt;            1</span></span></code></pre></div>
+</div>
+<div id="intermediate-solution-theory-driven-3" class="section level2">
+<h2>Intermediate Solution (Theory-Driven)</h2>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Intermediate solution: specify include = &quot;?&quot; and dir.exp</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>res_dts_int <span class="ot">&lt;-</span> <span class="fu">dtSweep</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">dat            =</span> dat,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">outcome        =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">conditions     =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">sweep_list_X   =</span> sweep_list_dts_X,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">sweep_range_Y  =</span> sweep_range_dts_Y,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">include        =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>)</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="fu">summary</span>(res_dts_int)</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; DTS-QCA Summary</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; =============== </span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="co">#&gt;  thrY combo_id             thrX     expression inclS  covS n_solutions</span></span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a><span class="co">#&gt;     6        1 X1=6, X2=6, X3=6          X1*X2 0.833 0.441           1</span></span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a><span class="co">#&gt;     7        1 X1=6, X2=6, X3=6          X1*X2 0.833 0.455           1</span></span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a><span class="co">#&gt;     6        2 X1=7, X2=6, X3=6          X1*X2 1.000 0.382           1</span></span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a><span class="co">#&gt;     7        2 X1=7, X2=6, X3=6          X1*X2 1.000 0.394           1</span></span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a><span class="co">#&gt;     6        3 X1=6, X2=7, X3=6      X1*X2*~X3 0.818 0.265           1</span></span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a><span class="co">#&gt;     7        3 X1=6, X2=7, X3=6      X1*X2*~X3 0.818 0.273           1</span></span>
+<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt;     6        4 X1=7, X2=7, X3=6          X1*X2 1.000 0.294           1</span></span>
+<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt;     7        4 X1=7, X2=7, X3=6          X1*X2 1.000 0.303           1</span></span>
+<span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt;     6        5 X1=6, X2=6, X3=7             X3 0.864 0.559           1</span></span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt;     7        5 X1=6, X2=6, X3=7             X3 0.864 0.576           1</span></span>
+<span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt;     6        6 X1=7, X2=6, X3=7 ~X1*X3 + X1*X2 0.931 0.794           1</span></span>
+<span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a><span class="co">#&gt;     7        6 X1=7, X2=6, X3=7 ~X1*X3 + X1*X2 0.931 0.818           1</span></span>
+<span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a><span class="co">#&gt;     6        7 X1=6, X2=7, X3=7             X3 0.864 0.559           1</span></span>
+<span id="cb15-39"><a href="#cb15-39" tabindex="-1"></a><span class="co">#&gt;     7        7 X1=6, X2=7, X3=7             X3 0.864 0.576           1</span></span>
+<span id="cb15-40"><a href="#cb15-40" tabindex="-1"></a><span class="co">#&gt;     6        8 X1=7, X2=7, X3=7     X3 + X1*X2 0.906 0.853           1</span></span>
+<span id="cb15-41"><a href="#cb15-41" tabindex="-1"></a><span class="co">#&gt;     7        8 X1=7, X2=7, X3=7     X3 + X1*X2 0.906 0.879           1</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="understanding-the-output" class="section level1">
+<h1>Understanding the Output</h1>
+<p>Each sweep result contains:</p>
+<ul>
+<li>threshold values tested,</li>
+<li>minimized solution expression,</li>
+<li>solution consistency (<code>inclS</code>),</li>
+<li>solution coverage (<code>covS</code>).</li>
+</ul>
+<p>General guidance:</p>
+<ul>
+<li><strong>Consistency ≥ 0.8</strong> is typically required for
+sufficiency.</li>
+<li><strong>Coverage</strong> indicates empirical relevance; higher is
+better.</li>
+<li>A solution sensitive to small threshold changes suggests low
+robustness.</li>
+</ul>
+<hr />
+</div>
+<div id="handling-multiple-solutions-new-in-v0.2.0" class="section level1">
+<h1>Handling Multiple Solutions (New in v0.2.0)</h1>
+<div id="why-multiple-solutions-matter" class="section level2">
+<h2>Why Multiple Solutions Matter</h2>
+<p>When QCA minimization produces multiple equivalent intermediate
+solutions, researchers face a methodological challenge: which solution
+should be reported? Traditional approaches often report only the first
+solution (M1), but this may miss important causal heterogeneity.</p>
+<p>ThSQCA v0.2.0 addresses this by:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Detecting</strong> when multiple solutions exist</li>
+<li><strong>Extracting</strong> essential prime implicants (terms common
+to all solutions)</li>
+<li><strong>Identifying</strong> selective prime implicants and unique
+terms</li>
+</ol>
+</div>
+<div id="essential-vs.-selective-prime-implicants" class="section level2">
+<h2>Essential vs. Selective Prime Implicants</h2>
+<p>Understanding the distinction between essential and selective prime
+implicants is essential for robust QCA interpretation:</p>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="35%" />
+<col width="47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Definition</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Essential prime implicants</strong></td>
+<td>Present in ALL solutions</td>
+<td>Robust findings; essential causal factors</td>
+</tr>
+<tr class="even">
+<td><strong>Selective prime implicants</strong></td>
+<td>Present in SOME but not all solutions</td>
+<td>Context-dependent; may vary across cases</td>
+</tr>
+<tr class="odd">
+<td><strong>Unique terms</strong></td>
+<td>Present in only ONE specific solution</td>
+<td>Solution-specific; least robust</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="using-extract_mode" class="section level2">
+<h2>Using <code>extract_mode</code></h2>
+<p>The <code>extract_mode</code> parameter controls how solutions are
+extracted:</p>
+<div id="mode-first-default" class="section level3">
+<h3>Mode: “first” (Default)</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Returns only the first solution (M1)</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co"># Backward compatible with v0.1.x</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">extract_mode =</span> <span class="st">&quot;first&quot;</span>  <span class="co"># Default</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="mode-all" class="section level3">
+<h3>Mode: “all”</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Returns all solutions concatenated</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="co"># Useful for seeing all equivalent solutions</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>result_all <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>  <span class="at">extract_mode =</span> <span class="st">&quot;all&quot;</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>)</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="co"># Output includes n_solutions column</span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="fu">head</span>(result_all<span class="sc">$</span>summary)</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a><span class="co"># expression column shows: &quot;M1: A*B + C; M2: A*B + D; M3: ...&quot;</span></span></code></pre></div>
+</div>
+<div id="mode-essential" class="section level3">
+<h3>Mode: “essential”</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Returns essential prime implicants (terms common to all solutions)</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="co"># Best for identifying robust findings</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>result_essential <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>  <span class="at">extract_mode =</span> <span class="st">&quot;essential&quot;</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>)</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co"># Output includes:</span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="co"># - expression: essential prime implicants</span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="co"># - selective_terms: terms in some but not all solutions</span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="co"># - unique_terms: solution-specific terms</span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="co"># - n_solutions: number of equivalent solutions</span></span></code></pre></div>
+</div>
+</div>
+<div id="practical-example" class="section level2">
+<h2>Practical Example</h2>
+<p>Consider a scenario where QCA produces three equivalent
+solutions:</p>
+<ul>
+<li>M1: <code>A*B + C → Y</code></li>
+<li>M2: <code>A*B + D → Y</code></li>
+<li>M3: <code>A*B + E → Y</code></li>
+</ul>
+<p>The analysis reveals:</p>
+<table>
+<colgroup>
+<col width="32%" />
+<col width="20%" />
+<col width="47%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Terms</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Essential (EPI)</td>
+<td><code>A*B</code></td>
+<td>Present in all three solutions; robust finding</td>
+</tr>
+<tr class="even">
+<td>Selective (SPI)</td>
+<td><code>C, D, E</code></td>
+<td>Each appears in one solution; context-dependent</td>
+</tr>
+<tr class="odd">
+<td>Unique (M1)</td>
+<td><code>C</code></td>
+<td>Only in solution 1</td>
+</tr>
+<tr class="even">
+<td>Unique (M2)</td>
+<td><code>D</code></td>
+<td>Only in solution 2</td>
+</tr>
+<tr class="odd">
+<td>Unique (M3)</td>
+<td><code>E</code></td>
+<td>Only in solution 3</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation</strong>: Report the essential prime
+implicants (<code>A*B → Y</code>) as your main finding, and discuss the
+selective prime implicants as alternative pathways in your discussion
+section.</p>
+<hr />
+</div>
+</div>
+<div id="generating-reports-new-in-v0.2.0" class="section level1">
+<h1>Generating Reports (New in v0.2.0)</h1>
+<div id="overview-1" class="section level2">
+<h2>Overview</h2>
+<p>The <code>generate_report()</code> function creates comprehensive
+markdown reports from your analysis results. This automates the
+documentation process and ensures reproducibility.</p>
+</div>
+<div id="report-formats" class="section level2">
+<h2>Report Formats</h2>
+<div id="full-report" class="section level3">
+<h3>Full Report</h3>
+<p>Contains comprehensive analysis details:</p>
+<ul>
+<li>Analysis settings (for reproducibility)</li>
+<li>Summary table across all thresholds</li>
+<li>Per-threshold detailed results</li>
+<li>All solution formulas</li>
+<li>Essential and selective prime implicants</li>
+<li>Fit measures (consistency, coverage, PRI)</li>
+<li>Configuration charts (New in v0.5.0)</li>
+</ul>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Generate full report</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">generate_report</span>(res_ots, <span class="st">&quot;my_analysis_full.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">format =</span> <span class="st">&quot;full&quot;</span>)</span></code></pre></div>
+</div>
+<div id="simple-report" class="section level3">
+<h3>Simple Report</h3>
+<p>Designed for journal manuscripts:</p>
+<ul>
+<li>Condensed format</li>
+<li>Essential information only</li>
+<li>Ready for supplementary materials</li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Generate simple report</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">generate_report</span>(res_ots, <span class="st">&quot;my_analysis_simple.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">format =</span> <span class="st">&quot;simple&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="using-reports-effectively" class="section level2">
+<h2>Using Reports Effectively</h2>
+<div id="for-research-papers" class="section level3">
+<h3>For Research Papers</h3>
+<ol style="list-style-type: decimal">
+<li>Run analysis with <code>return_details = TRUE</code> (default in
+v0.2.0)</li>
+<li>Generate a <strong>simple report</strong> for the main
+manuscript</li>
+<li>Generate a <strong>full report</strong> for supplementary
+materials</li>
+</ol>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Complete workflow</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="at">dat =</span> mydata,</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>)</span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a><span class="co"># For main text</span></span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;manuscript_results.md&quot;</span>, <span class="at">dat =</span> mydata, <span class="at">format =</span> <span class="st">&quot;simple&quot;</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a><span class="co"># For supplementary materials</span></span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;supplementary_full.md&quot;</span>, <span class="at">dat =</span> mydata, <span class="at">format =</span> <span class="st">&quot;full&quot;</span>)</span></code></pre></div>
+</div>
+<div id="accessing-analysis-parameters" class="section level3">
+<h3>Accessing Analysis Parameters</h3>
+<p>All analysis parameters are stored in <code>result$params</code> for
+reproducibility:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># View stored parameters</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>result<span class="sc">$</span>params</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co"># Includes:</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="co"># - outcome, conditions: variable names</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co"># - thrX, thrY: threshold values</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co"># - incl.cut, n.cut, pri.cut: QCA parameters</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co"># - dir.exp, include: minimization settings</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+</div>
+<div id="best-practices" class="section level1">
+<h1>Best Practices</h1>
+<div id="start-small-then-expand" class="section level2">
+<h2>Start Small, Then Expand</h2>
+<p>When using sweep functions, the number of QCA analyses grows quickly.
+A systematic approach prevents wasted computation:</p>
+<div id="step-1-single-value-test" class="section level3">
+<h3>Step 1: Single Value Test</h3>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="co"># Test with a single threshold first</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">7</span>,  <span class="co"># Single value</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="step-2-small-range" class="section level3">
+<h3>Step 2: Small Range</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># Expand to a small range</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>,  <span class="co"># Small range</span></span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="step-3-full-analysis" class="section level3">
+<h3>Step 3: Full Analysis</h3>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="co"># Run full analysis only after confirming it works</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>,  <span class="co"># Full range</span></span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+</div>
+<div id="computational-complexity" class="section level2">
+<h2>Computational Complexity</h2>
+<p>Understanding computational complexity helps plan your analysis:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>Complexity</th>
+<th>Example</th>
+<th>Analyses</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>otSweep()</code></td>
+<td>O(n)</td>
+<td>5 Y thresholds</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td><code>ctSweepS()</code></td>
+<td>O(n)</td>
+<td>5 X thresholds</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td><code>ctSweepM()</code></td>
+<td>O(m^k)</td>
+<td>3 thresholds × 3 conditions</td>
+<td>27</td>
+</tr>
+<tr class="even">
+<td><code>dtSweep()</code></td>
+<td>O(n × m^k)</td>
+<td>3 Y × 3^3 X</td>
+<td>81</td>
+</tr>
+</tbody>
+</table>
+<div id="managing-large-sweeps" class="section level3">
+<h3>Managing Large Sweeps</h3>
+<p>For <code>dtSweep()</code> and <code>ctSweepM()</code>, reduce
+conditions first:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="co"># Manageable: 2 × 2 × 2 = 8 combinations</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co"># Caution: 5 × 5 × 5 = 125 combinations</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">X1 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X2 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X3 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>)</span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co"># Avoid: 5 × 5 × 5 × 5 × 5 = 3125 combinations!</span></span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a>sweep_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">X1 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X2 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X3 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X4 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">X5 =</span> <span class="dv">5</span><span class="sc">:</span><span class="dv">9</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="interpreting-results" class="section level2">
+<h2>Interpreting Results</h2>
+<div id="when-solutions-are-stable" class="section level3">
+<h3>When Solutions Are Stable</h3>
+<p>If the same solution appears across multiple thresholds, your
+findings are robust:</p>
+<pre><code>thrY | expression    | inclS | covS
+-----|---------------|-------|------
+6    | A*B + C → Y   | 0.85  | 0.72
+7    | A*B + C → Y   | 0.88  | 0.68
+8    | A*B + C → Y   | 0.91  | 0.65</code></pre>
+<p><strong>Interpretation</strong>: The solution <code>A*B + C</code> is
+robust across threshold variations.</p>
+</div>
+<div id="when-solutions-change" class="section level3">
+<h3>When Solutions Change</h3>
+<p>If solutions vary significantly, investigate the threshold
+sensitivity:</p>
+<pre><code>thrY | expression    | inclS | covS
+-----|---------------|-------|------
+6    | A*B + C → Y   | 0.82  | 0.75
+7    | A*B → Y       | 0.89  | 0.62
+8    | B*D → Y       | 0.93  | 0.45</code></pre>
+<p><strong>Interpretation</strong>: Results are threshold-sensitive.
+Consider reporting the most theoretically justified threshold with
+appropriate caveats.</p>
+<hr />
+</div>
+</div>
+</div>
+<div id="negated-outcome-analysis-new-in-v0.3.0" class="section level1">
+<h1>Negated Outcome Analysis (New in v0.3.0)</h1>
+<div id="why-analyze-negated-outcomes" class="section level2">
+<h2>Why Analyze Negated Outcomes?</h2>
+<p>In QCA, researchers typically analyze conditions sufficient for the
+<strong>presence</strong> of an outcome (Y = 1). However, understanding
+conditions for the <strong>absence</strong> of an outcome (~Y) can
+provide equally valuable insights:</p>
+<ul>
+<li>What conditions lead to project <strong>failure</strong> (not
+success)?</li>
+<li>What factors contribute to customer <strong>dissatisfaction</strong>
+(not satisfaction)?</li>
+<li>What explains policy <strong>non-adoption</strong> (not
+adoption)?</li>
+</ul>
+</div>
+<div id="using-the-notation" class="section level2">
+<h2>Using the <code>~</code> Notation</h2>
+<p>ThSQCA v0.3.0 supports the QCA package’s tilde (<code>~</code>)
+notation for negated outcomes:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="co"># Analyze conditions for Y &gt;= threshold (standard)</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>result_Y <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>)</span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a><span class="co"># Analyze conditions for Y &lt; threshold (negated)</span></span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>result_negY <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;~Y&quot;</span>,</span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a>  <span class="at">thrX =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="interpreting-negated-results" class="section level2">
+<h2>Interpreting Negated Results</h2>
+<p>When using <code>~Y</code>, the solution shows conditions sufficient
+for the <strong>absence</strong> of the outcome:</p>
+<table>
+<colgroup>
+<col width="22%" />
+<col width="40%" />
+<col width="36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Analysis</th>
+<th>Solution Example</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>outcome = &quot;Y&quot;</code></td>
+<td><code>X1*X2 + X3</code></td>
+<td>High X1 AND X2, OR high X3 → High Y</td>
+</tr>
+<tr class="even">
+<td><code>outcome = &quot;~Y&quot;</code></td>
+<td><code>~X1*~X3 + ~X2*~X3</code></td>
+<td>Low X1 AND X3, OR low X2 AND X3 → Low Y</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: Negated conditions (<code>~X1</code>) in the
+solution mean the <strong>absence</strong> of that condition (below
+threshold).</p>
+</div>
+<div id="all-sweep-functions-support-negation" class="section level2">
+<h2>All Sweep Functions Support Negation</h2>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="co"># ctSweepS with negated outcome</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">ctSweepS</span>(</span>
+<span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb30-4"><a href="#cb30-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;~Y&quot;</span>,</span>
+<span id="cb30-5"><a href="#cb30-5" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb30-6"><a href="#cb30-6" tabindex="-1"></a>  <span class="at">sweep_var =</span> <span class="st">&quot;X3&quot;</span>,</span>
+<span id="cb30-7"><a href="#cb30-7" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb30-8"><a href="#cb30-8" tabindex="-1"></a>  <span class="at">thrY =</span> <span class="dv">7</span>,</span>
+<span id="cb30-9"><a href="#cb30-9" tabindex="-1"></a>  <span class="at">thrX_default =</span> <span class="dv">7</span></span>
+<span id="cb30-10"><a href="#cb30-10" tabindex="-1"></a>)</span>
+<span id="cb30-11"><a href="#cb30-11" tabindex="-1"></a></span>
+<span id="cb30-12"><a href="#cb30-12" tabindex="-1"></a><span class="co"># ctSweepM with negated outcome</span></span>
+<span id="cb30-13"><a href="#cb30-13" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">ctSweepM</span>(</span>
+<span id="cb30-14"><a href="#cb30-14" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb30-15"><a href="#cb30-15" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;~Y&quot;</span>,</span>
+<span id="cb30-16"><a href="#cb30-16" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>),</span>
+<span id="cb30-17"><a href="#cb30-17" tabindex="-1"></a>  <span class="at">sweep_list =</span> <span class="fu">list</span>(<span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>),</span>
+<span id="cb30-18"><a href="#cb30-18" tabindex="-1"></a>  <span class="at">thrY =</span> <span class="dv">7</span></span>
+<span id="cb30-19"><a href="#cb30-19" tabindex="-1"></a>)</span>
+<span id="cb30-20"><a href="#cb30-20" tabindex="-1"></a></span>
+<span id="cb30-21"><a href="#cb30-21" tabindex="-1"></a><span class="co"># dtSweep with negated outcome</span></span>
+<span id="cb30-22"><a href="#cb30-22" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">dtSweep</span>(</span>
+<span id="cb30-23"><a href="#cb30-23" tabindex="-1"></a>  <span class="at">dat =</span> dat,</span>
+<span id="cb30-24"><a href="#cb30-24" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;~Y&quot;</span>,</span>
+<span id="cb30-25"><a href="#cb30-25" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>),</span>
+<span id="cb30-26"><a href="#cb30-26" tabindex="-1"></a>  <span class="at">sweep_list_X =</span> <span class="fu">list</span>(<span class="at">X1 =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>),</span>
+<span id="cb30-27"><a href="#cb30-27" tabindex="-1"></a>  <span class="at">sweep_range_Y =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span></span>
+<span id="cb30-28"><a href="#cb30-28" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="checking-negation-in-results" class="section level2">
+<h2>Checking Negation in Results</h2>
+<p>The <code>params</code> object stores whether negation was used:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(<span class="at">dat =</span> dat, <span class="at">outcome =</span> <span class="st">&quot;~Y&quot;</span>, ...)</span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="co"># Check if negated</span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>result<span class="sc">$</span>params<span class="sc">$</span>negate_outcome</span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a><span class="co"># [1] TRUE</span></span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a></span>
+<span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a>result<span class="sc">$</span>params<span class="sc">$</span>outcome</span>
+<span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a><span class="co"># [1] &quot;~Y&quot;</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="fiss-2011-coreperipheral-classification-new-in-v1.3.2" class="section level1">
+<h1>Fiss (2011) Core/Peripheral Classification (New in v1.3.2)</h1>
+<div id="what-is-the-coreperipheral-distinction" class="section level2">
+<h2>What Is the Core/Peripheral Distinction?</h2>
+<p>Fiss (2011) introduced a critical refinement to QCA configuration
+tables that is now standard in the <em>Academy of Management
+Journal</em> and other top management journals. Beyond simply indicating
+whether a condition is present or absent in a solution, Fiss
+distinguishes between:</p>
+<table>
+<colgroup>
+<col width="23%" />
+<col width="46%" />
+<col width="30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Definition</th>
+<th>Symbol</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Core condition</strong></td>
+<td>Appears in BOTH the parsimonious AND intermediate solutions</td>
+<td>● (large)</td>
+</tr>
+<tr class="even">
+<td><strong>Peripheral condition</strong></td>
+<td>Appears in the intermediate solution ONLY</td>
+<td>⊙ (small)</td>
+</tr>
+</tbody>
+</table>
+<p>The intuition is straightforward: conditions that survive even the
+most aggressive simplification (parsimonious solution) are more central
+to the causal story than conditions that only appear when theoretical
+constraints are applied (intermediate solution).</p>
+<blockquote>
+<p><strong>Why this matters:</strong> Prior to v1.3.2, ThSQCA
+configuration charts treated all conditions as equivalent, using only
+two symbols. This is technically incorrect per Fiss (2011) and may raise
+concerns from reviewers at journals that require Fiss notation.</p>
+</blockquote>
+</div>
+<div id="the-four-symbol-set" class="section level2">
+<h2>The Four-Symbol Set</h2>
+<pre><code>● = core condition present      (large filled circle)
+⊗ = core condition absent       (large circle-times)
+⊙ = peripheral condition present (small circled dot)
+⊘ = peripheral condition absent  (small circled slash)
+  = don&#39;t care (blank)</code></pre>
+<p>For LaTeX / academic PDF output: <code>$\bullet$</code>,
+<code>$\otimes$</code>, <code>$\odot$</code>,
+<code>$\oslash$</code>.</p>
+</div>
+<div id="workflow" class="section level2">
+<h2>Workflow</h2>
+<p><code>compute_fiss_core()</code> requires three conditions from the
+original sweep:</p>
+<ol style="list-style-type: decimal">
+<li><code>include = &quot;?&quot;</code> — logical remainders must be enabled</li>
+<li><code>dir.exp</code> specified — intermediate solution must have
+been requested</li>
+<li><code>return_details = TRUE</code> — truth tables must be
+stored</li>
+</ol>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">library</span>(ThSQCA)</span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a><span class="fu">data</span>(sample_data)</span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a><span class="co"># Step 1: Run intermediate sweep (all three conditions above are met)</span></span>
+<span id="cb33-5"><a href="#cb33-5" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb33-6"><a href="#cb33-6" tabindex="-1"></a>  <span class="at">dat        =</span> sample_data,</span>
+<span id="cb33-7"><a href="#cb33-7" tabindex="-1"></a>  <span class="at">outcome    =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb33-8"><a href="#cb33-8" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb33-9"><a href="#cb33-9" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb33-10"><a href="#cb33-10" tabindex="-1"></a>  <span class="at">thrX       =</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>),</span>
+<span id="cb33-11"><a href="#cb33-11" tabindex="-1"></a>  <span class="at">include    =</span> <span class="st">&quot;?&quot;</span>,           <span class="co"># required</span></span>
+<span id="cb33-12"><a href="#cb33-12" tabindex="-1"></a>  <span class="at">dir.exp    =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),   <span class="co"># required</span></span>
+<span id="cb33-13"><a href="#cb33-13" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span>       <span class="co"># required</span></span>
+<span id="cb33-14"><a href="#cb33-14" tabindex="-1"></a>)</span>
+<span id="cb33-15"><a href="#cb33-15" tabindex="-1"></a></span>
+<span id="cb33-16"><a href="#cb33-16" tabindex="-1"></a><span class="co"># Step 2: Compute Fiss core/peripheral classification</span></span>
+<span id="cb33-17"><a href="#cb33-17" tabindex="-1"></a><span class="co"># For each threshold, compute_fiss_core() re-runs QCA::minimize()</span></span>
+<span id="cb33-18"><a href="#cb33-18" tabindex="-1"></a><span class="co"># with dir.exp = NULL to obtain the parsimonious solution,</span></span>
+<span id="cb33-19"><a href="#cb33-19" tabindex="-1"></a><span class="co"># then compares it to the stored intermediate solution.</span></span>
+<span id="cb33-20"><a href="#cb33-20" tabindex="-1"></a>res_fiss <span class="ot">&lt;-</span> <span class="fu">compute_fiss_core</span>(res, <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>))</span>
+<span id="cb33-21"><a href="#cb33-21" tabindex="-1"></a></span>
+<span id="cb33-22"><a href="#cb33-22" tabindex="-1"></a><span class="co"># Step 3: Inspect a specific threshold</span></span>
+<span id="cb33-23"><a href="#cb33-23" tabindex="-1"></a><span class="fu">print_fiss_summary</span>(res_fiss, <span class="at">thr_key =</span> <span class="st">&quot;7&quot;</span>)</span>
+<span id="cb33-24"><a href="#cb33-24" tabindex="-1"></a></span>
+<span id="cb33-25"><a href="#cb33-25" tabindex="-1"></a><span class="co"># Step 4: Generate Fiss-style four-symbol chart</span></span>
+<span id="cb33-26"><a href="#cb33-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">generate_fiss_chart</span>(res_fiss, <span class="at">symbol_set =</span> <span class="st">&quot;unicode&quot;</span>))</span>
+<span id="cb33-27"><a href="#cb33-27" tabindex="-1"></a></span>
+<span id="cb33-28"><a href="#cb33-28" tabindex="-1"></a><span class="co"># For academic papers (LaTeX)</span></span>
+<span id="cb33-29"><a href="#cb33-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">generate_fiss_chart</span>(res_fiss, <span class="at">symbol_set =</span> <span class="st">&quot;latex&quot;</span>))</span>
+<span id="cb33-30"><a href="#cb33-30" tabindex="-1"></a></span>
+<span id="cb33-31"><a href="#cb33-31" tabindex="-1"></a><span class="co"># Step 5: Include in report</span></span>
+<span id="cb33-32"><a href="#cb33-32" tabindex="-1"></a><span class="fu">generate_report</span>(</span>
+<span id="cb33-33"><a href="#cb33-33" tabindex="-1"></a>  res_fiss,</span>
+<span id="cb33-34"><a href="#cb33-34" tabindex="-1"></a>  <span class="at">output_file      =</span> <span class="st">&quot;fiss_report.md&quot;</span>,</span>
+<span id="cb33-35"><a href="#cb33-35" tabindex="-1"></a>  <span class="at">format           =</span> <span class="st">&quot;full&quot;</span>,</span>
+<span id="cb33-36"><a href="#cb33-36" tabindex="-1"></a>  <span class="at">include_fiss_core =</span> <span class="cn">TRUE</span>,          <span class="co"># activates four-symbol charts</span></span>
+<span id="cb33-37"><a href="#cb33-37" tabindex="-1"></a>  <span class="at">chart_symbol_set  =</span> <span class="st">&quot;unicode&quot;</span></span>
+<span id="cb33-38"><a href="#cb33-38" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="reading-the-output" class="section level2">
+<h2>Reading the Output</h2>
+<p><code>print_fiss_summary()</code> shows the classification
+term-by-term:</p>
+<pre><code>=== Fiss Core/Peripheral Classification (thrY = 7) ===
+Parsimonious : X1*X2
+Intermediate : X3 + X1*X2
+
+[Term M1] X3
+  Periph. present : X3
+
+[Term M2] X1*X2
+  Core present    : X1, X2</code></pre>
+<p><strong>Interpretation:</strong> X1 and X2 are core (they appear in
+the parsimonious solution <code>X1*X2</code>). X3 is peripheral — it
+only appears when theory-guided directional expectations are applied
+(intermediate solution), suggesting it plays a supporting rather than
+essential causal role.</p>
+</div>
+<div id="what-if-all-conditions-are-core" class="section level2">
+<h2>What If All Conditions Are Core?</h2>
+<p>When the parsimonious and intermediate solutions are identical, all
+conditions are core and no conditions are peripheral. This indicates
+maximum theoretical parsimony.</p>
+</div>
+<div id="reference" class="section level2">
+<h2>Reference</h2>
+<p>Fiss, P. C. (2011). Building better causal theories: A fuzzy set
+approach to typologies in organization research. <em>Academy of
+Management Journal</em>, 54(2), 393–420. <a href="doi:10.5465/amj.2011.60263120" class="uri">doi:10.5465/amj.2011.60263120</a></p>
+<hr />
+</div>
+</div>
+<div id="configuration-charts-new-in-v0.5.0" class="section level1">
+<h1>Configuration Charts (New in v0.5.0)</h1>
+<p>ThSQCA can generate Fiss-style configuration charts (Table 5 format)
+commonly used in QCA publications.</p>
+<div id="automatic-inclusion-in-reports" class="section level2">
+<h2>Automatic Inclusion in Reports</h2>
+<p>Configuration charts are now automatically included in reports
+generated by <code>generate_report()</code>:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="co"># Generate report with configuration charts (default)</span></span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_report.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">format =</span> <span class="st">&quot;full&quot;</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" tabindex="-1"></a><span class="co"># Disable charts if needed</span></span>
+<span id="cb35-5"><a href="#cb35-5" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_report.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">include_chart =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" tabindex="-1"></a><span class="co"># Use LaTeX symbols for academic papers</span></span>
+<span id="cb35-8"><a href="#cb35-8" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_report.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">chart_symbol_set =</span> <span class="st">&quot;latex&quot;</span>)</span>
+<span id="cb35-9"><a href="#cb35-9" tabindex="-1"></a></span>
+<span id="cb35-10"><a href="#cb35-10" tabindex="-1"></a><span class="co"># Include QCA package raw output for verification (default is TRUE)</span></span>
+<span id="cb35-11"><a href="#cb35-11" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_report.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">include_raw_output =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" tabindex="-1"></a></span>
+<span id="cb35-13"><a href="#cb35-13" tabindex="-1"></a><span class="co"># Disable raw output if not needed</span></span>
+<span id="cb35-14"><a href="#cb35-14" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_report.md&quot;</span>, <span class="at">dat =</span> dat, <span class="at">include_raw_output =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<p><strong>Note (v1.2.0)</strong>: Reports now display the
+<strong>Solution Type</strong> (Complex/Parsimonious/Intermediate) in
+the Analysis Overview section, and optionally include raw QCA package
+output for verification purposes.</p>
+</div>
+<div id="standalone-chart-functions" class="section level2">
+<h2>Standalone Chart Functions</h2>
+<p>You can also generate configuration charts directly:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="co"># From path strings</span></span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>paths <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;A*B*~C&quot;</span>, <span class="st">&quot;A*D&quot;</span>, <span class="st">&quot;B*E&quot;</span>)</span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>chart <span class="ot">&lt;-</span> <span class="fu">config_chart_from_paths</span>(paths)</span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a><span class="fu">cat</span>(chart)</span>
+<span id="cb36-5"><a href="#cb36-5" tabindex="-1"></a><span class="co">#&gt; | Condition | M1 | M2 | M3 |</span></span>
+<span id="cb36-6"><a href="#cb36-6" tabindex="-1"></a><span class="co">#&gt; |:--:|:--:|:--:|:--:|</span></span>
+<span id="cb36-7"><a href="#cb36-7" tabindex="-1"></a><span class="co">#&gt; | A | ● | ● |  |</span></span>
+<span id="cb36-8"><a href="#cb36-8" tabindex="-1"></a><span class="co">#&gt; | B | ● |  | ● |</span></span>
+<span id="cb36-9"><a href="#cb36-9" tabindex="-1"></a><span class="co">#&gt; | C | ⊗ |  |  |</span></span>
+<span id="cb36-10"><a href="#cb36-10" tabindex="-1"></a><span class="co">#&gt; | D |  | ● |  |</span></span>
+<span id="cb36-11"><a href="#cb36-11" tabindex="-1"></a><span class="co">#&gt; | E |  |  | ● |</span></span>
+<span id="cb36-12"><a href="#cb36-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb36-13"><a href="#cb36-13" tabindex="-1"></a><span class="co">#&gt; *● = presence, ⊗ = absence, blank = don&#39;t care*</span></span></code></pre></div>
+<div id="symbol-sets" class="section level3">
+<h3>Symbol Sets</h3>
+<p>Three symbol sets are available:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="co"># ASCII (maximum compatibility)</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">config_chart_from_paths</span>(paths, <span class="at">symbol_set =</span> <span class="st">&quot;ascii&quot;</span>))</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a><span class="co">#&gt; | Condition | M1 | M2 | M3 |</span></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="co">#&gt; |:--:|:--:|:--:|:--:|</span></span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a><span class="co">#&gt; | A | O | O |  |</span></span>
+<span id="cb37-6"><a href="#cb37-6" tabindex="-1"></a><span class="co">#&gt; | B | O |  | O |</span></span>
+<span id="cb37-7"><a href="#cb37-7" tabindex="-1"></a><span class="co">#&gt; | C | X |  |  |</span></span>
+<span id="cb37-8"><a href="#cb37-8" tabindex="-1"></a><span class="co">#&gt; | D |  | O |  |</span></span>
+<span id="cb37-9"><a href="#cb37-9" tabindex="-1"></a><span class="co">#&gt; | E |  |  | O |</span></span>
+<span id="cb37-10"><a href="#cb37-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb37-11"><a href="#cb37-11" tabindex="-1"></a><span class="co">#&gt; *O = presence, X = absence, blank = don&#39;t care*</span></span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co"># LaTeX (for PDF/academic papers)</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">config_chart_from_paths</span>(paths, <span class="at">symbol_set =</span> <span class="st">&quot;latex&quot;</span>))</span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a><span class="co"># Output: $\bullet$ for presence, $\otimes$ for absence</span></span></code></pre></div>
+</div>
+<div id="multiple-solutions" class="section level3">
+<h3>Multiple Solutions</h3>
+<p>When you have multiple equivalent solutions:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>solutions <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;A*B&quot;</span>, <span class="st">&quot;C*D&quot;</span>),</span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">&quot;A*B&quot;</span>, <span class="st">&quot;C*E&quot;</span>)</span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a>)</span>
+<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a>chart <span class="ot">&lt;-</span> <span class="fu">config_chart_multi_solutions</span>(solutions)</span>
+<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a><span class="fu">cat</span>(chart)</span>
+<span id="cb39-7"><a href="#cb39-7" tabindex="-1"></a><span class="co">#&gt; **Note:** 2 equivalent solutions exist. Tables are shown separately below.</span></span>
+<span id="cb39-8"><a href="#cb39-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-9"><a href="#cb39-9" tabindex="-1"></a><span class="co">#&gt; </span><span class="al">###</span><span class="co"> Solution M1</span></span>
+<span id="cb39-10"><a href="#cb39-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-11"><a href="#cb39-11" tabindex="-1"></a><span class="co">#&gt; | Condition | M1 | M2 |</span></span>
+<span id="cb39-12"><a href="#cb39-12" tabindex="-1"></a><span class="co">#&gt; |:--:|:--:|:--:|</span></span>
+<span id="cb39-13"><a href="#cb39-13" tabindex="-1"></a><span class="co">#&gt; | A | ● |  |</span></span>
+<span id="cb39-14"><a href="#cb39-14" tabindex="-1"></a><span class="co">#&gt; | B | ● |  |</span></span>
+<span id="cb39-15"><a href="#cb39-15" tabindex="-1"></a><span class="co">#&gt; | C |  | ● |</span></span>
+<span id="cb39-16"><a href="#cb39-16" tabindex="-1"></a><span class="co">#&gt; | D |  | ● |</span></span>
+<span id="cb39-17"><a href="#cb39-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-18"><a href="#cb39-18" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb39-19"><a href="#cb39-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-20"><a href="#cb39-20" tabindex="-1"></a><span class="co">#&gt; </span><span class="al">###</span><span class="co"> Solution M2</span></span>
+<span id="cb39-21"><a href="#cb39-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-22"><a href="#cb39-22" tabindex="-1"></a><span class="co">#&gt; | Condition | M1 | M2 |</span></span>
+<span id="cb39-23"><a href="#cb39-23" tabindex="-1"></a><span class="co">#&gt; |:--:|:--:|:--:|</span></span>
+<span id="cb39-24"><a href="#cb39-24" tabindex="-1"></a><span class="co">#&gt; | A | ● |  |</span></span>
+<span id="cb39-25"><a href="#cb39-25" tabindex="-1"></a><span class="co">#&gt; | B | ● |  |</span></span>
+<span id="cb39-26"><a href="#cb39-26" tabindex="-1"></a><span class="co">#&gt; | C |  | ● |</span></span>
+<span id="cb39-27"><a href="#cb39-27" tabindex="-1"></a><span class="co">#&gt; | E |  | ● |</span></span>
+<span id="cb39-28"><a href="#cb39-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb39-29"><a href="#cb39-29" tabindex="-1"></a><span class="co">#&gt; *● = presence, ⊗ = absence, blank = don&#39;t care*</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>ThSQCA provides a structured and reproducible way to evaluate<br />
+how threshold choices influence QCA results.</p>
+<p>Using CTS, MCTS, OTS, and DTS sweeps, researchers can:</p>
+<ul>
+<li>assess robustness,</li>
+<li>identify stable causal patterns,</li>
+<li>detect threshold-sensitive relationships,</li>
+<li>and strengthen QCA validity.</li>
+</ul>
+<p><strong>New in v1.3.2:</strong></p>
+<ul>
+<li><code>compute_fiss_core()</code>: Augments sweep results with Fiss
+(2011) core/peripheral classification</li>
+<li><code>generate_fiss_chart()</code>: Four-symbol configuration charts
+(●/⊗/⊙/⊘) for academic publications</li>
+<li><code>print_fiss_summary()</code>: Human-readable core/peripheral
+breakdown per threshold</li>
+<li><code>generate_report(..., include_fiss_core = TRUE)</code>: Reports
+with full Fiss notation</li>
+</ul>
+<p><strong>New in v1.3.0:</strong></p>
+<ul>
+<li><code>pre_calibrated</code> argument: mixed crisp/fuzzy workflow for
+all four sweep functions</li>
+</ul>
+<p><strong>New in v1.1.0:</strong></p>
+<ul>
+<li>QCA-compatible defaults: <code>include = &quot;&quot;</code> and
+<code>dir.exp = NULL</code> (complex solution)</li>
+<li>Clear documentation of three solution types (complex, parsimonious,
+intermediate)</li>
+<li>Fixed critical bug in <code>dir.exp</code> handling</li>
+</ul>
+<p><strong>New in v0.5.0:</strong></p>
+<ul>
+<li>Configuration charts automatically included in reports</li>
+<li>New parameters: <code>include_chart</code>,
+<code>chart_symbol_set</code></li>
+<li>Standalone chart functions: <code>config_chart_from_paths()</code>,
+<code>config_chart_multi_solutions()</code></li>
+</ul>
+<p><strong>New in v0.3.0:</strong></p>
+<ul>
+<li>QCA-compatible argument names (<code>outcome</code>,
+<code>conditions</code>)</li>
+<li>Negated outcome support (<code>~Y</code> notation)</li>
+<li>Backward compatibility with deprecation warnings</li>
+</ul>
+<p><strong>New in v0.2.0:</strong></p>
+<ul>
+<li>Detect and analyze multiple equivalent solutions</li>
+<li>Extract essential prime implicants for robust findings</li>
+<li>Generate comprehensive reports automatically</li>
+<li>Access stored parameters for reproducibility</li>
+</ul>
+<hr />
+</div>
+<div id="verification-for-academic-publications" class="section level1">
+<h1>Verification for Academic Publications</h1>
+<p><strong>For academic publications</strong>, we strongly recommend
+verifying ThSQCA results directly with the QCA package before
+submission. This ensures accuracy and reproducibility.</p>
+<div id="recommended-verification-workflow" class="section level2">
+<h2>Recommended Verification Workflow</h2>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="fu">library</span>(QCA)</span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a><span class="fu">library</span>(ThSQCA)</span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="co"># Step 1: Run ThSQCA analysis</span></span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a><span class="fu">data</span>(sample_data)</span>
+<span id="cb40-6"><a href="#cb40-6" tabindex="-1"></a>thrX <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">X1 =</span> <span class="dv">7</span>, <span class="at">X2 =</span> <span class="dv">7</span>, <span class="at">X3 =</span> <span class="dv">7</span>)</span>
+<span id="cb40-7"><a href="#cb40-7" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">otSweep</span>(</span>
+<span id="cb40-9"><a href="#cb40-9" tabindex="-1"></a>  <span class="at">dat =</span> sample_data,</span>
+<span id="cb40-10"><a href="#cb40-10" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb40-11"><a href="#cb40-11" tabindex="-1"></a>  <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>),</span>
+<span id="cb40-12"><a href="#cb40-12" tabindex="-1"></a>  <span class="at">sweep_range =</span> <span class="dv">6</span><span class="sc">:</span><span class="dv">8</span>,</span>
+<span id="cb40-13"><a href="#cb40-13" tabindex="-1"></a>  <span class="at">thrX =</span> thrX,</span>
+<span id="cb40-14"><a href="#cb40-14" tabindex="-1"></a>  <span class="at">include =</span> <span class="st">&quot;?&quot;</span>,</span>
+<span id="cb40-15"><a href="#cb40-15" tabindex="-1"></a>  <span class="at">dir.exp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb40-16"><a href="#cb40-16" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
+<span id="cb40-17"><a href="#cb40-17" tabindex="-1"></a>)</span>
+<span id="cb40-18"><a href="#cb40-18" tabindex="-1"></a></span>
+<span id="cb40-19"><a href="#cb40-19" tabindex="-1"></a><span class="co"># Step 2: Generate report with QCA output for verification</span></span>
+<span id="cb40-20"><a href="#cb40-20" tabindex="-1"></a><span class="fu">generate_report</span>(result, <span class="st">&quot;my_analysis.md&quot;</span>, <span class="at">dat =</span> sample_data, </span>
+<span id="cb40-21"><a href="#cb40-21" tabindex="-1"></a>                <span class="at">include_raw_output =</span> <span class="cn">TRUE</span>)  <span class="co"># Default is TRUE</span></span>
+<span id="cb40-22"><a href="#cb40-22" tabindex="-1"></a></span>
+<span id="cb40-23"><a href="#cb40-23" tabindex="-1"></a><span class="co"># Step 3: Verify key results directly with QCA package</span></span>
+<span id="cb40-24"><a href="#cb40-24" tabindex="-1"></a><span class="co"># For each important threshold, run QCA::minimize() directly</span></span>
+<span id="cb40-25"><a href="#cb40-25" tabindex="-1"></a>dat_bin <span class="ot">&lt;-</span> sample_data</span>
+<span id="cb40-26"><a href="#cb40-26" tabindex="-1"></a>dat_bin<span class="sc">$</span>Y_bin <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(sample_data<span class="sc">$</span>Y <span class="sc">&gt;=</span> <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb40-27"><a href="#cb40-27" tabindex="-1"></a>dat_bin<span class="sc">$</span>X1_bin <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(sample_data<span class="sc">$</span>X1 <span class="sc">&gt;=</span> <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb40-28"><a href="#cb40-28" tabindex="-1"></a>dat_bin<span class="sc">$</span>X2_bin <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(sample_data<span class="sc">$</span>X2 <span class="sc">&gt;=</span> <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb40-29"><a href="#cb40-29" tabindex="-1"></a>dat_bin<span class="sc">$</span>X3_bin <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(sample_data<span class="sc">$</span>X3 <span class="sc">&gt;=</span> <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb40-30"><a href="#cb40-30" tabindex="-1"></a></span>
+<span id="cb40-31"><a href="#cb40-31" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">truthTable</span>(dat_bin, <span class="at">outcome =</span> <span class="st">&quot;Y_bin&quot;</span>, </span>
+<span id="cb40-32"><a href="#cb40-32" tabindex="-1"></a>                 <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;X1_bin&quot;</span>, <span class="st">&quot;X2_bin&quot;</span>, <span class="st">&quot;X3_bin&quot;</span>),</span>
+<span id="cb40-33"><a href="#cb40-33" tabindex="-1"></a>                 <span class="at">incl.cut =</span> <span class="fl">0.8</span>)</span>
+<span id="cb40-34"><a href="#cb40-34" tabindex="-1"></a>sol <span class="ot">&lt;-</span> <span class="fu">minimize</span>(tt, <span class="at">include =</span> <span class="st">&quot;?&quot;</span>, <span class="at">dir.exp =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb40-35"><a href="#cb40-35" tabindex="-1"></a><span class="fu">print</span>(sol)  <span class="co"># Compare with ThSQCA report</span></span></code></pre></div>
+</div>
+<div id="why-verification-matters" class="section level2">
+<h2>Why Verification Matters</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Accuracy</strong>: Confirms ThSQCA extraction matches QCA
+package output</li>
+<li><strong>Reproducibility</strong>: Provides independent verification
+for reviewers</li>
+<li><strong>Transparency</strong>: Documents the analysis pipeline
+clearly</li>
+</ol>
+</div>
+<div id="what-to-check" class="section level2">
+<h2>What to Check</h2>
+<ul>
+<li>Solution expressions match exactly</li>
+<li>Consistency and coverage values match</li>
+<li>Number of solutions (M1, M2, …) is correct</li>
+</ul>
+<blockquote>
+<p><strong>Tip</strong>: The “QCA Package Output” section in ThSQCA
+reports (enabled by <code>include_raw_output = TRUE</code>) shows the
+direct <code>print(sol)</code> output for easy comparison.</p>
+</blockquote>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>For more information on TS-QCA methodology, see:</p>
+<ul>
+<li>Ragin, C. C. (2008). <em>Redesigning Social Inquiry: Fuzzy Sets and
+Beyond</em>. University of Chicago Press. DOI: <a href="https://doi.org/10.7208/chicago/9780226702797.001.0001">10.7208/chicago/9780226702797.001.0001</a></li>
+<li>Duşa, A. (2019). <em>QCA with R: A Comprehensive Resource</em>.
+Springer. DOI: <a href="https://doi.org/10.1007/978-3-319-75668-4">10.1007/978-3-319-75668-4</a></li>
+<li>Oana, I.-E., &amp; Schneider, C. Q. (2024). A Robustness Test
+Protocol for Applied QCA: Theory and R Software Application.
+<em>Sociological Methods &amp; Research</em>, 53(1), 57–88. DOI: <a href="https://doi.org/10.1177/00491241211036158">10.1177/00491241211036158</a></li>
+</ul>
+</div>
+</div>
+<div id="session-info" class="section level1">
+<h1>Session Info</h1>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a><span class="co">#&gt; R version 4.4.2 (2024-10-31 ucrt)</span></span>
+<span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
+<span id="cb41-4"><a href="#cb41-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 26200)</span></span>
+<span id="cb41-5"><a href="#cb41-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-6"><a href="#cb41-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
+<span id="cb41-7"><a href="#cb41-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-8"><a href="#cb41-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-9"><a href="#cb41-9" tabindex="-1"></a><span class="co">#&gt; locale:</span></span>
+<span id="cb41-10"><a href="#cb41-10" tabindex="-1"></a><span class="co">#&gt; [1] LC_COLLATE=C                    LC_CTYPE=Japanese_Japan.utf8   </span></span>
+<span id="cb41-11"><a href="#cb41-11" tabindex="-1"></a><span class="co">#&gt; [3] LC_MONETARY=Japanese_Japan.utf8 LC_NUMERIC=C                   </span></span>
+<span id="cb41-12"><a href="#cb41-12" tabindex="-1"></a><span class="co">#&gt; [5] LC_TIME=Japanese_Japan.utf8    </span></span>
+<span id="cb41-13"><a href="#cb41-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-14"><a href="#cb41-14" tabindex="-1"></a><span class="co">#&gt; time zone: Asia/Tokyo</span></span>
+<span id="cb41-15"><a href="#cb41-15" tabindex="-1"></a><span class="co">#&gt; tzcode source: internal</span></span>
+<span id="cb41-16"><a href="#cb41-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-17"><a href="#cb41-17" tabindex="-1"></a><span class="co">#&gt; attached base packages:</span></span>
+<span id="cb41-18"><a href="#cb41-18" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb41-19"><a href="#cb41-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-20"><a href="#cb41-20" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
+<span id="cb41-21"><a href="#cb41-21" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.23     admisc_0.39  ThSQCA_2.0.0</span></span>
+<span id="cb41-22"><a href="#cb41-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb41-23"><a href="#cb41-23" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
+<span id="cb41-24"><a href="#cb41-24" tabindex="-1"></a><span class="co">#&gt;  [1] cli_3.6.5         knitr_1.50        rlang_1.1.7       xfun_0.55        </span></span>
+<span id="cb41-25"><a href="#cb41-25" tabindex="-1"></a><span class="co">#&gt;  [5] otel_0.2.0        promises_1.5.0    shiny_1.12.1      jsonlite_2.0.0   </span></span>
+<span id="cb41-26"><a href="#cb41-26" tabindex="-1"></a><span class="co">#&gt;  [9] xtable_1.8-4      htmltools_0.5.9   httpuv_1.6.16     sass_0.4.10      </span></span>
+<span id="cb41-27"><a href="#cb41-27" tabindex="-1"></a><span class="co">#&gt; [13] lpSolve_5.6.23    rmarkdown_2.30    evaluate_1.0.4    jquerylib_0.1.4  </span></span>
+<span id="cb41-28"><a href="#cb41-28" tabindex="-1"></a><span class="co">#&gt; [17] fastmap_1.2.0     yaml_2.3.10       lifecycle_1.0.5   compiler_4.4.2   </span></span>
+<span id="cb41-29"><a href="#cb41-29" tabindex="-1"></a><span class="co">#&gt; [21] Rcpp_1.1.0        rstudioapi_0.17.1 later_1.4.4       digest_0.6.39    </span></span>
+<span id="cb41-30"><a href="#cb41-30" tabindex="-1"></a><span class="co">#&gt; [25] R6_2.6.1          magrittr_2.0.4    bslib_0.9.0       declared_0.25    </span></span>
+<span id="cb41-31"><a href="#cb41-31" tabindex="-1"></a><span class="co">#&gt; [29] tools_4.4.2       mime_0.13         venn_1.12         cachem_1.1.0</span></span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

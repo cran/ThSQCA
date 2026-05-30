@@ -1,0 +1,569 @@
+---
+title: "ThSQCA Reproducible Code (English)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ThSQCA Reproducible Code (English)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This document provides **reproducible code** for ThSQCA analyses.  
+It is designed to be inserted directly into a research article's appendix  
+or provided as supplementary analysis documentation.
+All code is fully executable and ordered for reproducibility.
+
+> **Note (v1.3.2)**: New Section 12 provides complete reproducible code for
+> Fiss (2011) core/peripheral classification using `compute_fiss_core()`,
+> `generate_fiss_chart()`, and `print_fiss_summary()`.
+
+> **Note (v1.2.0)**: If you previously used intermediate solutions (with `dir.exp`), please re-run your analyses. Version 1.2.0 fixed a bug where intermediate solutions were incorrectly extracted. Reports now also display the Solution Type and include optional QCA package output for verification.
+
+---
+
+# 1. Load Packages
+```{r}
+library(ThSQCA)
+library(QCA)
+```
+
+---
+
+# 2. Load Data
+```{r}
+# Adjust the file name as needed
+library(ThSQCA)
+data("sample_data")
+dat <- sample_data
+
+# Outcome and conditions
+outcome  <- "Y"
+conditions <- c("X1", "X2", "X3")
+
+# Quick inspection
+str(dat)
+summary(dat)
+```
+
+---
+
+# 3. Baseline Thresholds
+```{r}
+thrY_base <- 7
+thrX_base <- 7
+
+# Fixed X thresholds (for OTS–QCA)
+thrX_vec <- c(
+  X1 = thrX_base,
+  X2 = thrX_base,
+  X3 = thrX_base
+)
+thrX_vec
+```
+
+---
+
+# 3.5. Three Types of QCA Solutions (New in v1.1.0)
+
+As of v1.1.0, ThSQCA defaults match the QCA package:
+
+| Solution Type | `include` | `dir.exp` | When to Use |
+|--------------|-----------|-----------|-------------|
+| **Complex** (default) | `""` | `NULL` | Conservative analysis |
+| **Parsimonious** | `"?"` | `NULL` | Maximum simplification |
+| **Intermediate** | `"?"` | `c(1,1,...)` | Theory-driven (most common) |
+
+```{r}
+# Example: Three solution types at single threshold
+thrX <- c(X1 = 7, X2 = 7, X3 = 7)
+
+# Complex (default)
+res_comp <- otSweep(dat, "Y", c("X1", "X2", "X3"), sweep_range = 7, thrX = thrX)
+cat("Complex:", res_comp$summary$expression, "\n")
+
+# Parsimonious
+res_pars <- otSweep(dat, "Y", c("X1", "X2", "X3"), sweep_range = 7, thrX = thrX,
+                    include = "?")
+cat("Parsimonious:", res_pars$summary$expression, "\n")
+
+# Intermediate
+res_int <- otSweep(dat, "Y", c("X1", "X2", "X3"), sweep_range = 7, thrX = thrX,
+                   include = "?", dir.exp = c(1, 1, 1))
+cat("Intermediate:", res_int$summary$expression, "\n")
+```
+
+---
+
+# 4. CTS–QCA (ctSweepS)
+
+Sweep a **single condition X** (example: X3).
+
+## Default: Complex Solution
+```{r, error=TRUE}
+sweep_var   <- "X3"   # Condition (X) whose threshold is swept
+sweep_range <- 6:9    # Candidate threshold values to evaluate
+thrY         <- 7     # Outcome (Y) threshold (fixed)
+thrX_default <- 7     # Threshold for other X conditions (fixed)
+
+# Default: Complex solution (include = "", dir.exp = NULL)
+res_cts <- ctSweepS(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_var      = "X3",
+  sweep_range    = 6:9,
+  thrY           = 7,
+  thrX_default   = 7,
+  return_details = TRUE
+)
+
+summary(res_cts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r, error=TRUE}
+# Intermediate solution: specify include = "?" and dir.exp
+res_cts_int <- ctSweepS(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_var      = "X3",
+  sweep_range    = 6:9,
+  thrY           = 7,
+  thrX_default   = 7,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_cts_int)
+```
+
+Export:
+```{r, eval=FALSE}
+write.csv(res_cts$summary, file = "TSQCA_CTS_results.csv", row.names = FALSE)
+```
+
+---
+
+# 5. MCTS–QCA (ctSweepM)
+
+Sweep **multiple X thresholds simultaneously**.
+
+## Default: Complex Solution
+```{r, error=TRUE}
+# Create a sweep list specifying thresholds for each condition
+sweep_list <- list(
+  X1 = 6:7,
+  X2 = 6:7,
+  X3 = 6:7
+)
+
+# Default: Complex solution
+res_mcts <- ctSweepM(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list     = sweep_list,
+  thrY           = 7,
+  return_details = TRUE
+)
+
+summary(res_mcts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r, error=TRUE}
+# Intermediate solution: specify include = "?" and dir.exp
+res_mcts_int <- ctSweepM(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list     = sweep_list,
+  thrY           = 7,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_mcts_int)
+```
+
+Export:
+```{r, eval=FALSE}
+write.csv(res_mcts$summary, file = "TSQCA_MCTS_results.csv", row.names = FALSE)
+```
+
+---
+
+# 6. OTS–QCA (otSweep)
+
+Sweep **only the outcome threshold (Y)**.
+
+## Default: Complex Solution
+```{r}
+sweep_range_ots <- 6:8
+
+# Default: Complex solution
+res_ots <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = sweep_range_ots,
+  thrX           = thrX_vec,
+  return_details = TRUE
+)
+
+summary(res_ots)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r}
+# Intermediate solution: specify include = "?" and dir.exp
+res_ots_int <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = sweep_range_ots,
+  thrX           = thrX_vec,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_ots_int)
+```
+
+Export:
+```{r, eval=FALSE}
+write.csv(res_ots$summary, file = "TSQCA_OTS_results.csv", row.names = FALSE)
+```
+
+---
+
+# 7. DTS–QCA (dtSweep)
+
+Two-dimensional sweep: **X thresholds × Y thresholds**.
+
+## Default: Complex Solution
+```{r}
+sweep_list_dts_X <- list(
+  X1 = 6:7,
+  X2 = 6:7,
+  X3 = 6:7
+)
+
+sweep_range_dts_Y <- 6:7
+
+# Default: Complex solution
+res_dts <- dtSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list_X   = sweep_list_dts_X,
+  sweep_range_Y  = sweep_range_dts_Y,
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_dts)
+```
+
+## Intermediate Solution (Theory-Driven)
+```{r}
+# Intermediate solution: specify include = "?" and dir.exp
+res_dts_int <- dtSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_list_X   = sweep_list_dts_X,
+  sweep_range_Y  = sweep_range_dts_Y,
+  include        = "?",
+  dir.exp        = c(1, 1, 1),
+  return_details = TRUE
+)
+
+summary(res_dts_int)
+```
+
+Export:
+```{r, eval=FALSE}
+write.csv(res_dts$summary, file = "TSQCA_DTS_results.csv", row.names = FALSE)
+```
+
+---
+
+# 8. Using extract_mode (New in v0.2.0)
+
+Extract all solutions or essential prime implicants for robustness analysis.
+
+## Extract All Solutions
+```{r, eval=FALSE}
+res_all <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = thrX_vec,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1),    # Intermediate solution
+  extract_mode   = "all",
+  return_details = TRUE
+)
+
+# View results with n_solutions column
+head(res_all$summary)
+```
+
+## Extract Essential Prime Implicants
+```{r, eval=FALSE}
+res_essential <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = thrX_vec,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1),    # Intermediate solution
+  extract_mode   = "essential",
+  return_details = TRUE
+)
+
+# View results with essential prime implicants, selective terms, and unique terms
+head(res_essential$summary)
+```
+
+---
+
+# 9. Generating Reports (New in v0.2.0)
+
+Create comprehensive markdown reports for documentation.
+
+## Full Report
+```{r, eval=FALSE}
+generate_report(res_ots, "TSQCA_OTS_report_full.md", dat = dat, format = "full")
+```
+
+## Simple Report (for manuscripts)
+```{r, eval=FALSE}
+generate_report(res_ots, "TSQCA_OTS_report_simple.md", dat = dat, format = "simple")
+```
+
+---
+
+# 10. Negated Outcome Analysis (New in v0.3.0)
+
+Analyze conditions sufficient for the **absence** of the outcome.
+
+## Standard vs Negated Outcome
+```{r, eval=FALSE}
+# Standard: conditions for Y >= threshold (intermediate solution)
+res_Y <- otSweep(
+  dat            = dat,
+  outcome        = "Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = thrX_vec,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1)     # Intermediate solution
+)
+
+# Negated: conditions for Y < threshold (intermediate solution)
+res_negY <- otSweep(
+  dat            = dat,
+  outcome        = "~Y",
+  conditions     = c("X1", "X2", "X3"),
+  sweep_range    = 6:8,
+  thrX           = thrX_vec,
+  include        = "?",           # Include logical remainders
+  dir.exp        = c(1, 1, 1)     # Intermediate solution
+)
+
+# Compare results
+res_Y$summary
+res_negY$summary
+
+# Check negation flag
+res_negY$params$negate_outcome
+# [1] TRUE
+```
+
+---
+
+# 11. Accessing Analysis Parameters
+
+All parameters are stored for reproducibility.
+```{r, eval=FALSE}
+# View stored parameters
+res_ots$params
+
+# Example output:
+# $outcome
+# [1] "Y"
+# $conditions
+# [1] "X1" "X2" "X3"
+# $thrX
+# X1 X2 X3 
+#  7  7  7 
+# $incl.cut
+# [1] 0.8
+# $n.cut
+# [1] 1
+# $pri.cut
+# [1] 0
+```
+
+---
+
+## Configuration Charts (New in v0.5.0)
+
+Configuration charts are now automatically included in reports. You can also generate them separately:
+
+```{r}
+# From path strings
+paths <- c("A*B*~C", "A*D")
+chart <- config_chart_from_paths(paths)
+cat(chart)
+```
+
+For reports:
+```{r, eval=FALSE}
+# Charts are included by default
+generate_report(result, "report.md", dat = dat, format = "full")
+
+# Use LaTeX symbols for academic papers
+generate_report(result, "report.md", dat = dat, chart_symbol_set = "latex")
+```
+
+---
+
+## References
+
+For more information on TS-QCA methodology, see:
+
+- Ragin, C. C. (2008). *Redesigning Social Inquiry: Fuzzy Sets and Beyond*. University of Chicago Press. DOI: [10.7208/chicago/9780226702797.001.0001](https://doi.org/10.7208/chicago/9780226702797.001.0001)
+- Duşa, A. (2019). *QCA with R: A Comprehensive Resource*. Springer. DOI: [10.1007/978-3-319-75668-4](https://doi.org/10.1007/978-3-319-75668-4)
+- Oana, I.-E., & Schneider, C. Q. (2024). A Robustness Test Protocol for Applied QCA: Theory and R Software Application. *Sociological Methods & Research*, 53(1), 57–88. DOI: [10.1177/00491241211036158](https://doi.org/10.1177/00491241211036158)
+
+
+
+---
+
+# 12. Fiss (2011) Core/Peripheral Classification (New in v1.3.2)
+
+This section provides fully reproducible code for Fiss-style four-symbol
+configuration charts. Run sections 1–6 first to ensure `res_ots_int` is available.
+
+## 12.1 Compute Core/Peripheral Classification
+
+```{r, eval=FALSE}
+# Requires: include = "?", dir.exp specified, return_details = TRUE
+# res_ots_int was created in Section 6 above.
+
+res_fiss <- compute_fiss_core(
+  res_ots_int,
+  conditions = c("X1", "X2", "X3")
+)
+
+# Inspect available thresholds
+names(res_fiss$fiss_core)
+```
+
+## 12.2 Print Per-Threshold Summary
+
+```{r, eval=FALSE}
+# English
+print_fiss_summary(res_fiss, thr_key = "7")
+
+# Japanese
+print_fiss_summary(res_fiss, thr_key = "7", language = "ja")
+```
+
+Example output:
+
+```
+=== Fiss Core/Peripheral Classification (thrY = 7) ===
+Parsimonious : X1*X2
+Intermediate : X3 + X1*X2
+
+[Term M1] X3
+  Periph. present : X3
+
+[Term M2] X1*X2
+  Core present    : X1, X2
+```
+
+## 12.3 Generate Four-Symbol Chart
+
+```{r, eval=FALSE}
+# Unicode (Markdown / screen)
+cat(generate_fiss_chart(res_fiss, symbol_set = "unicode"))
+
+# LaTeX (for PDF/journal submission)
+cat(generate_fiss_chart(res_fiss, symbol_set = "latex"))
+
+# ASCII (maximum compatibility)
+cat(generate_fiss_chart(res_fiss, symbol_set = "ascii"))
+```
+
+Symbol legend:
+
+| Symbol (unicode) | LaTeX | ASCII | Meaning |
+|-----------------|-------|-------|---------|
+| ● | `$\bullet$` | O | Core condition present |
+| ⊗ | `$\otimes$` | X | Core condition absent |
+| ⊙ | `$\odot$` | o | Peripheral condition present |
+| ⊘ | `$\oslash$` | x | Peripheral condition absent |
+| (blank) | (blank) | (blank) | Don't care |
+
+## 12.4 Include in Report
+
+```{r, eval=FALSE}
+# Full report with Fiss four-symbol charts
+generate_report(
+  res_fiss,
+  output_file       = "TSQCA_Fiss_report.md",
+  format            = "full",
+  dat               = dat,
+  include_fiss_core = TRUE,       # activates four-symbol charts
+  chart_symbol_set  = "unicode",
+  include_raw_output = TRUE
+)
+```
+
+## 12.5 Accessing the Classification Data
+
+```{r, eval=FALSE}
+# Access raw classification data frame for a given threshold
+classif_7 <- res_fiss$fiss_core[["7"]]$classification
+classif_7
+
+# Filter core conditions only
+classif_7[classif_7$type == "core" & classif_7$status != "dontcare", ]
+
+# Filter peripheral conditions only
+classif_7[classif_7$type == "peripheral" & classif_7$status != "dontcare", ]
+
+# Parsimonious and intermediate expressions
+res_fiss$fiss_core[["7"]]$parsim_expression
+res_fiss$fiss_core[["7"]]$interm_expression
+```
+
+## 12.6 Note on Computational Cost
+
+`compute_fiss_core()` runs `QCA::minimize()` once per threshold (to obtain
+the parsimonious solution). The total computation time is therefore
+approximately double that of the original sweep. For large sweeps
+(many thresholds or conditions), this is worth keeping in mind.
+
+---
+
+# 13. Session Information
+```{r}
+sessionInfo()
+```
