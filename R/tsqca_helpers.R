@@ -2,6 +2,42 @@
 # Helper functions for ThSQCA
 ###############################################
 
+#' Sanitize a truth table before Boolean minimization
+#'
+#' Guards against two behaviors of \code{QCA::truthTable()} (observed with
+#' QCA 3.25 / admisc 0.40) that can affect programmatic, repeated calls such
+#' as threshold sweeps. For sparse truth tables the \code{incl}/\code{PRI}
+#' columns may be returned as \code{character} rather than \code{numeric},
+#' and logical-remainder rows (observed \code{n = 0}) may carry the string
+#' \code{"-"}. Passing such a truth table to \code{QCA::minimize()} can, for
+#' some truth table structures, cause the minimization to hang or return
+#' misleading fit values. This helper coerces \code{incl}/\code{PRI} to
+#' numeric and sets the remainder rows to 0.
+#'
+#' The \code{OUT} column is deliberately left untouched: \code{minimize()}
+#' uses \code{OUT} (with the symbolic \code{"?"} for remainders) to identify
+#' positive, negative, and remainder rows, so setting \code{incl}/\code{PRI}
+#' to 0 on remainder rows does not alter remainder handling.
+#'
+#' @param tt A truth table object returned by \code{QCA::truthTable()}.
+#'
+#' @return The same object with numeric \code{incl}/\code{PRI} columns and
+#'   no \code{NA} in those columns. Returns the input unchanged if it is
+#'   \code{NULL} or lacks a \code{$tt} data frame.
+#' @keywords internal
+sanitize_truthtable <- function(tt) {
+  if (is.null(tt) || is.null(tt$tt)) return(tt)
+  if (!is.null(tt$tt$incl) && is.character(tt$tt$incl)) {
+    tt$tt$incl <- suppressWarnings(as.numeric(tt$tt$incl))
+  }
+  if (!is.null(tt$tt$PRI) && is.character(tt$tt$PRI)) {
+    tt$tt$PRI <- suppressWarnings(as.numeric(tt$tt$PRI))
+  }
+  if (!is.null(tt$tt$incl)) tt$tt$incl[is.na(tt$tt$incl)] <- 0
+  if (!is.null(tt$tt$PRI))  tt$tt$PRI[is.na(tt$tt$PRI)]   <- 0
+  tt
+}
+
 #' Escape special characters for Markdown
 #'
 #' Escapes asterisks and other special characters that have special

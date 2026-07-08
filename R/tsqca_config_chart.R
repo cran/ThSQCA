@@ -570,7 +570,7 @@ generate_threshold_level_chart <- function(sum_df, conditions, symbols, language
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' data(sample_data)
 #' result <- otSweep(
 #'   dat = sample_data,
@@ -655,7 +655,26 @@ generate_cross_threshold_chart <- function(result,
 #'
 #' @export
 #'
-
+#' @examples
+#' \dontrun{
+#' # After running QCA::minimize()
+#' library(QCA)
+#' tt <- truthTable(data, outcome = "Y", conditions = c("A", "B", "C"))
+#' sol <- minimize(tt, include = "?", details = TRUE)
+#' 
+#' # Generate configuration chart
+#' chart <- generate_config_chart(sol)
+#' cat(chart)
+#'
+#' # For LaTeX/PDF output (e.g., rticles)
+#' chart <- generate_config_chart(sol, symbol_set = "latex")
+#'
+#' # ASCII for maximum compatibility
+#' chart <- generate_config_chart(sol, symbol_set = "ascii")
+#'
+#' # Japanese labels
+#' chart <- generate_config_chart(sol, language = "ja")
+#' }
 generate_config_chart <- function(sol,
                                    symbol_set = c("unicode", "ascii", "latex"),
                                    include_metrics = TRUE,

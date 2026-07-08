@@ -272,6 +272,7 @@ otSweep <- function(dat,
       next
     }
     
+    tt <- sanitize_truthtable(tt)  # QCA 3.25 guard: char incl/PRI + '-' remainders
     sol <- try(
       QCA::minimize(
         tt,
@@ -713,6 +714,7 @@ dtSweep <- function(dat,
         next
       }
       
+      tt <- sanitize_truthtable(tt)  # QCA 3.25 guard: char incl/PRI + '-' remainders
       sol <- try(
         QCA::minimize(
           tt,

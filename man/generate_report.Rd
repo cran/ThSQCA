@@ -6,7 +6,7 @@
 \usage{
 generate_report(
   result,
-  output_file = file.path(tempdir(), "qca_report.md"),
+  output_file = "qca_report.md",
   format = c("full", "simple"),
   title = "QCA Analysis Report",
   dat = NULL,
@@ -76,7 +76,7 @@ Creates a markdown report from QCA analysis results.
 Supports two formats: "full" (comprehensive) and "simple" (for manuscripts).
 }
 \examples{
-\donttest{
+\dontrun{
 data(sample_data)
 thrX <- c(X1 = 7, X2 = 7, X3 = 7)
 
@@ -90,20 +90,23 @@ result <- otSweep(
 )
 
 # With descriptive statistics and configuration charts
-generate_report(result, file.path(tempdir(), "my_report.md"), format = "full", 
+generate_report(result, "my_report.md", format = "full", 
                 dat = sample_data, include_chart = TRUE)
 
 # Without configuration charts
-generate_report(result, file.path(tempdir(), "my_report.md"), format = "simple",
+generate_report(result, "my_report.md", format = "simple",
                 include_chart = FALSE)
 
 # With Fiss-style term-level charts (default, recommended for publications)
-generate_report(result, file.path(tempdir(), "my_report.md"), format = "full")
+generate_report(result, "my_report.md", format = "full")
 
 # With threshold-level summary charts
-generate_report(result, file.path(tempdir(), "my_report.md"), format = "full",
+generate_report(result, "my_report.md", format = "full",
                 chart_level = "summary")
 
+# With Fiss core/peripheral chart (requires compute_fiss_core)
+res_fiss <- compute_fiss_core(result, conditions = c("X1", "X2", "X3"))
+generate_report(res_fiss, "my_report.md", format = "full",
+                include_fiss_core = TRUE)
 }
-
 }

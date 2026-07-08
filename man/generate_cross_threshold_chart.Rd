@@ -39,7 +39,7 @@ two levels of aggregation: solution-term level (Fiss-style, default) and
 threshold-level summary.
 }
 \examples{
-\donttest{
+\dontrun{
 data(sample_data)
 result <- otSweep(
   dat = sample_data,

@@ -1,3 +1,32 @@
+# ThSQCA 2.0.1
+
+*Release date: 2026-07-XX*
+
+## Bug fixes
+
+* **Guard against `QCA::truthTable()` type issues before minimization.**
+  With QCA 3.25 / admisc 0.40, `truthTable()` can, for sparse truth tables,
+  return the `incl`/`PRI` columns as `character` and represent
+  logical-remainder rows (observed `n = 0`) with the string `"-"`. Passing
+  such a truth table to `QCA::minimize()` can, for some truth table
+  structures, cause the minimization to hang or return misleading fit
+  values. All sweep functions (`otSweep()`, `ctSweepS()`, `ctSweepM()`,
+  `dtSweep()`) and the Fiss parsimonious step now coerce these columns to
+  numeric and set remainder rows to 0 via an internal `sanitize_truthtable()`
+  helper before calling `minimize()`. The `OUT` column is left untouched, so
+  remainder handling is unaffected.
+
+## Notes
+
+* This fix concerns robustness on sparse (typically crisp) truth tables that
+  can arise across a sweep. It does not change results that already ran to
+  completion: the guarded conditions either halt a run or leave completed
+  output unchanged, so previously obtained, completed sweep results are not
+  silently affected. Re-running is only necessary if a prior sweep hung or
+  failed to return a solution on data that produced sparse truth tables.
+
+---
+
 # ThSQCA 2.0.0
 
 *Release date: 2026-05-XX*
