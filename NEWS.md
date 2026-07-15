@@ -1,6 +1,21 @@
+# ThSQCA 2.0.2
+
+*Release date: 2026-07-15*
+
+## Documentation and metadata
+
+* Corrected an author attribution in `DESCRIPTION` and the package-level help.
+  The robustness protocol at <doi:10.1177/00491241211036158> is by Oana and
+  Schneider (2024), not "Rubinson et al. (2019)". The vignettes and README
+  already cited this work correctly; this aligns the package metadata with them.
+* `inst/CITATION` now derives the package version dynamically via
+  `paste("R package version", meta$Version)` instead of hard-coding it.
+
+---
+
 # ThSQCA 2.0.1
 
-*Release date: 2026-07-XX*
+*Release date: 2026-07-xx*
 
 ## Bug fixes
 

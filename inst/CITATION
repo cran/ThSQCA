@@ -3,7 +3,7 @@ bibentry(
   title    = "ThSQCA: Threshold-Sweep QCA",
   author   = "Yuki Toyoda",
   year     = "2026",
-  note     = "R package version 2.0.0",
+  note     = paste("R package version", meta$Version),
   url      = "https://CRAN.R-project.org/package=ThSQCA",
   doi      = "10.5281/zenodo.17899390",
   header   = "To cite ThSQCA in publications use:"
