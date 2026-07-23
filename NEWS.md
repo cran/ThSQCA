@@ -1,3 +1,80 @@
+# ThSQCA 2.0.4
+
+*Release date: 2026-07-22*
+
+## Bug fixes
+
+* **Fit measures for the intermediate solution now come from the intermediate
+  solution itself.** When `dir.exp` is specified, the sweep functions display
+  the intermediate solution (`sol$i.sol$C1P1$solution`), but `qca_extract()`
+  read `inclS`/`covS` from `sol$IC`, which describes the *parsimonious*
+  solution. The displayed intermediate formula was therefore paired with the
+  parsimonious fit: for a single parsimonious solution via
+  `sol$IC$sol.incl.cov`, and for several (tied) parsimonious solutions via
+  `sol$IC$overall` (the disjunction of the parsimonious solutions). The
+  extractor now branches on the displayed solution and reads
+  `sol$i.sol$C1P1$IC$sol.incl.cov` for intermediate solutions, so the fit
+  matches the displayed expression and `QCA::minimize()`'s own `print()`. This
+  affects the intermediate-solution output of `otSweep()`, `ctSweepS()`,
+  `ctSweepM()`, and `dtSweep()` in every `extract_mode`, whether the cell has
+  one or several minimal solutions.
+* The parsimonious/complex fix from 2.0.3 (first-solution fit read from
+  `sol$IC$individual[[1]]` rather than `sol$IC$overall`) is retained. Complex
+  and parsimonious solutions, crisp-set analyses, single-solution cells, and
+  no-solution cells are unchanged.
+* **The report and chart fit extractors received the same correction.** The
+  same fit-source confusion existed independently in `extract_all_metrics()`
+  (used by `generate_report()`) and in the internal chart helpers
+  `extract_solution_metrics_for_chart()` and `extract_path_metrics_for_chart()`:
+  with multiple minimal solutions they reported the `overall` aggregate rather
+  than the displayed solution's own fit, and for intermediate solutions they
+  could report the parsimonious fit. They now prefer the intermediate solution
+  (when `dir.exp` is used) and then the displayed solution's
+  `individual[[k]]` fit, falling back to `overall` only when the per-solution
+  fit is unavailable. `generate_report()` and the configuration charts now show
+  fit measures consistent with the sweep tables.
+* **`generate_report()` now reports the intermediate fit in every section.**
+  Beyond the extractor fix above, the report's "Solution Fit" and
+  "Cross-Threshold Comparison" sections passed `sol$IC` (the parsimonious
+  solution) to the extractor even when the displayed solution was the
+  intermediate one, so those sections showed the parsimonious `inclS`/`covS`
+  (and a parsimonious per-term row) under an intermediate formula, contradicting
+  the report's own Summary Table and its embedded QCA verification output. Both
+  call sites now select `sol$i.sol$C1P1$IC` for intermediate solutions, matching
+  the Summary Table. Non-intermediate reports are byte-for-byte unchanged.
+
+---
+
+# ThSQCA 2.0.3
+
+*Release date: 2026-07-22*
+
+## Bug fixes
+
+* **Fit measures now match the displayed solution when multiple minimal
+  solutions exist (fuzzy data).** When `QCA::minimize()` returns more than one
+  minimal solution, it stores the fit of each solution in
+  `sol$IC$individual[[k]]$sol.incl.cov` and the fit of the disjunction of all
+  solutions in `sol$IC$overall$sol.incl.cov`. With `extract_mode = "first"`
+  (the default) the sweep functions display the first solution (M1), but the
+  internal extractor `qca_extract()` reported the `overall` aggregate for
+  `inclS`/`covS`, so the printed formula (M1) and the printed fit did not
+  correspond. The extractor now reads `sol$IC$individual[[1]]$sol.incl.cov`
+  for the first solution. This affects `otSweep()`, `ctSweepS()`,
+  `ctSweepM()`, and `dtSweep()`, which share `qca_extract()`.
+  * Impact is confined to cells with multiple minimal solutions on fuzzy data,
+    where `overall` (the union coverage) is greater than any single solution's
+    coverage; the previously reported `covS` was biased upward. `covS` is the
+    materially affected measure; `inclS` differs only marginally.
+  * Crisp-set (csQCA) results are unchanged: for crisp data the per-solution
+    and overall fit coincide, so single-solution and no-solution cells, and all
+    crisp analyses, return identical values to previous versions.
+  * `extract_mode = "all"` and `extract_mode = "essential"` still report the
+    `overall` aggregate, which is appropriate because those modes summarize
+    across all solutions rather than displaying one.
+
+---
+
 # ThSQCA 2.0.2
 
 *Release date: 2026-07-15*

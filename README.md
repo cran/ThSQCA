@@ -31,6 +31,10 @@ Implemented sweep types:
 
 **Important**: v1.2.0 fixes a critical bug where intermediate solutions were incorrectly extracted when using `dir.exp`. If you used intermediate solutions in previous versions, please re-run your analyses.
 
+### Fit-measure fixes for fuzzy multiple-solution and intermediate cells (v2.0.3–v2.0.4)
+
+**Important**: v2.0.3 and v2.0.4 correct the consistency and coverage (`inclS`/`covS`) reported next to a solution in two situations: when a cell has multiple minimal solutions (which occurs on fuzzy data), and when a cell reports an intermediate solution (`dir.exp`). In earlier versions the displayed formula could be paired with the aggregate fit of all minimal solutions, or with the parsimonious fit, rather than with the fit of the formula actually shown. The affected measure is mainly `covS` (`inclS` differs only marginally). Crisp-set results, single-solution cells, and the solution formulas themselves are unaffected, and these fixes do not change any calculation, only which fit value is read. If you have reported ThSQCA's `covS` for fuzzy multiple-solution or intermediate cells, please re-check those values against the NEWS entries.
+
 ### Verification Recommendation for Publications
 
 **For academic publications**, we strongly recommend verifying ThSQCA results directly with the QCA package:
@@ -445,7 +449,7 @@ str(sample_data)
 
 - Duşa, A. (2019). *QCA with R: A Comprehensive Resource*. Springer. [DOI: 10.1007/978-3-319-75668-4](https://doi.org/10.1007/978-3-319-75668-4)
 - Duşa, A. (2018). Consistency Cubes: A Fast, Efficient Method for Exact Boolean Minimization. *The R Journal*, 10(2), 357–370. [DOI: 10.32614/RJ-2018-080](https://doi.org/10.32614/RJ-2018-080)
-- Duşa, A. (2024). *QCA: Qualitative Comparative Analysis*. R package version 3.22. https://CRAN.R-project.org/package=QCA
+- Duşa, A. (2024). *QCA: Qualitative Comparative Analysis*. R package version 3.25. https://CRAN.R-project.org/package=QCA
 
 ### Robustness and Threshold Sensitivity
 

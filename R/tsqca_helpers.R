@@ -92,7 +92,32 @@ extract_all_metrics <- function(IC, sol_obj = NULL) {
       if (!is.null(sol$covS)) result$sol_covS <- sol$covS[1]
     }
     
-    # Method 2: overall (multiple solutions case)
+    # Method 3 (solution fit): individual (multiple solutions, FIRST solution).
+    # This must run BEFORE the overall block below: with multiple minimal
+    # solutions, the displayed formula is the first solution (M1), so its fit is
+    # individual[[1]]$sol.incl.cov, not the overall (disjunction-of-all) aggregate
+    # that overinflates coverage on fuzzy data. term_df is also taken from the
+    # first individual solution.
+    if ("individual" %in% names(IC)) {
+      indiv <- IC$individual
+      if (is.list(indiv) && length(indiv) > 0) {
+        first_indiv <- indiv[[1]]
+        if (is.list(first_indiv)) {
+          if (is.na(result$sol_inclS) && "sol.incl.cov" %in% names(first_indiv)) {
+            sol <- first_indiv$sol.incl.cov
+            if (!is.null(sol$inclS)) result$sol_inclS <- sol$inclS[1]
+            if (!is.null(sol$PRI)) result$sol_PRI <- sol$PRI[1]
+            if (!is.null(sol$covS)) result$sol_covS <- sol$covS[1]
+          }
+          if (is.null(result$term_df) && "incl.cov" %in% names(first_indiv)) {
+            result$term_df <- first_indiv$incl.cov
+          }
+        }
+      }
+    }
+
+    # Method 2 (fallback): overall (disjunction of all solutions). Used only when
+    # the first solution's own fit was unavailable above.
     if (is.na(result$sol_inclS) && "overall" %in% names(IC)) {
       overall <- IC$overall
       if (is.list(overall)) {
@@ -110,27 +135,6 @@ extract_all_metrics <- function(IC, sol_obj = NULL) {
         }
         if (is.na(result$sol_covS) && !is.null(overall$covS)) {
           result$sol_covS <- overall$covS[1]
-        }
-      }
-    }
-    
-    # Method 3: individual (multiple solutions, first solution metrics)
-    if ("individual" %in% names(IC)) {
-      indiv <- IC$individual
-      if (is.list(indiv) && length(indiv) > 0) {
-        first_indiv <- indiv[[1]]
-        if (is.list(first_indiv)) {
-          # Get sol_inclS if not already found
-          if (is.na(result$sol_inclS) && "sol.incl.cov" %in% names(first_indiv)) {
-            sol <- first_indiv$sol.incl.cov
-            if (!is.null(sol$inclS)) result$sol_inclS <- sol$inclS[1]
-            if (!is.null(sol$PRI)) result$sol_PRI <- sol$PRI[1]
-            if (!is.null(sol$covS)) result$sol_covS <- sol$covS[1]
-          }
-          # Always try to get term_df from individual
-          if (is.null(result$term_df) && "incl.cov" %in% names(first_indiv)) {
-            result$term_df <- first_indiv$incl.cov
-          }
         }
       }
     }
@@ -156,7 +160,27 @@ extract_all_metrics <- function(IC, sol_obj = NULL) {
         result$term_df <- IC$incl.cov
       }
       
-      if ("overall" %in% names(IC)) {
+      # Method 4b (solution fit): individual first solution, BEFORE overall.
+      if ("individual" %in% names(IC)) {
+        indiv <- IC$individual
+        if (is.list(indiv) && length(indiv) > 0) {
+          first_indiv <- indiv[[1]]
+          if (is.list(first_indiv)) {
+            if (is.na(result$sol_inclS) && "sol.incl.cov" %in% names(first_indiv)) {
+              sol <- first_indiv$sol.incl.cov
+              if (!is.null(sol$inclS)) result$sol_inclS <- sol$inclS[1]
+              if (!is.null(sol$PRI)) result$sol_PRI <- sol$PRI[1]
+              if (!is.null(sol$covS)) result$sol_covS <- sol$covS[1]
+            }
+            if (is.null(result$term_df) && "incl.cov" %in% names(first_indiv)) {
+              result$term_df <- first_indiv$incl.cov
+            }
+          }
+        }
+      }
+
+      # overall as fallback only.
+      if (is.na(result$sol_inclS) && "overall" %in% names(IC)) {
         overall <- IC$overall
         if (is.list(overall)) {
           if ("sol.incl.cov" %in% names(overall)) {
@@ -173,25 +197,6 @@ extract_all_metrics <- function(IC, sol_obj = NULL) {
           }
           if (is.na(result$sol_covS) && !is.null(overall$covS)) {
             result$sol_covS <- overall$covS[1]
-          }
-        }
-      }
-      
-      # Method 4b: individual (always check for term_df)
-      if ("individual" %in% names(IC)) {
-        indiv <- IC$individual
-        if (is.list(indiv) && length(indiv) > 0) {
-          first_indiv <- indiv[[1]]
-          if (is.list(first_indiv)) {
-            if (is.na(result$sol_inclS) && "sol.incl.cov" %in% names(first_indiv)) {
-              sol <- first_indiv$sol.incl.cov
-              if (!is.null(sol$inclS)) result$sol_inclS <- sol$inclS[1]
-              if (!is.null(sol$PRI)) result$sol_PRI <- sol$PRI[1]
-              if (!is.null(sol$covS)) result$sol_covS <- sol$covS[1]
-            }
-            if (is.null(result$term_df) && "incl.cov" %in% names(first_indiv)) {
-              result$term_df <- first_indiv$incl.cov
-            }
           }
         }
       }

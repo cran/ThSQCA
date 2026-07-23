@@ -184,7 +184,11 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
   
   # === Priority 1: i.sol structure (true Intermediate solution when dir.exp specified) ===
   sol_list <- NULL
-  
+  # Track whether the displayed expression comes from the i.sol (dir.exp intermediate)
+  # structure or from sol$solution (parsimonious/complex). The per-solution fit lives
+  # in a different place for each, so this flag guards the fit lookup below.
+  used_isol <- FALSE
+
   # Try i.sol first (contains true Intermediate solution when dir.exp specified)
   if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
     sol_list <- try(sol$i.sol$C1P1$solution, silent = TRUE)
@@ -193,12 +197,14 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
       sol_list <- try(sol$i.sol[[1]]$solution, silent = TRUE)
       if (inherits(sol_list, "try-error")) sol_list <- NULL
     }
+    if (!is.null(sol_list) && length(sol_list) > 0) used_isol <- TRUE
   }
   
   # Fallback: sol$solution (for Parsimonious or when dir.exp not specified)
   if (is.null(sol_list) || length(sol_list) == 0) {
     if (!is.null(sol$solution) && length(sol$solution) > 0) {
       sol_list <- sol$solution
+      used_isol <- FALSE
     }
   }
   
@@ -206,63 +212,71 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
     return(null_response(extract_mode))
   }
   
-  # === FIXED: Try multiple paths to get metrics ===
+  # === Fit measures: source them from the SAME solution the expression shows ===
+  #
+  # The displayed expression (sol_list) is either the intermediate solution
+  # (sol$i.sol, when dir.exp was given; used_isol == TRUE) or the
+  # parsimonious/complex solution (sol$solution; used_isol == FALSE). The fit for
+  # each lives in a different place, so we branch on used_isol and never let the
+  # intermediate branch read sol$IC (which describes the parsimonious solution).
   inclS <- NA_real_
   covS <- NA_real_
-  
-  # Path 1: sol$IC$sol.incl.cov (for single solution without dir.exp)
-  if (is.na(inclS)) {
-    incl_val <- try(sol$IC$sol.incl.cov$inclS, silent = TRUE)
-    if (!inherits(incl_val, "try-error") && !is.null(incl_val)) {
-      inclS <- incl_val
+
+  if (used_isol) {
+    # --- Intermediate solution (dir.exp): fit comes from the intermediate itself.
+    # sol$IC (sol.incl.cov / individual / overall) all describe the PARSIMONIOUS
+    # solution, so reading them here attaches the parsimonious fit to the displayed
+    # intermediate formula. The intermediate fit is under sol$i.sol$C1P1$IC. This
+    # is wrong regardless of extract_mode and regardless of how many minimal
+    # solutions exist, so no sol$IC fallback is used.
+    ic_isol <- try(sol$i.sol$C1P1$IC$sol.incl.cov, silent = TRUE)
+    if (!inherits(ic_isol, "try-error") && !is.null(ic_isol)) {
+      if (!is.null(ic_isol$inclS)) inclS <- ic_isol$inclS[1]
+      if (!is.null(ic_isol$covS))  covS  <- ic_isol$covS[1]
     }
-  }
-  if (is.na(covS)) {
-    cov_val <- try(sol$IC$sol.incl.cov$covS, silent = TRUE)
-    if (!inherits(cov_val, "try-error") && !is.null(cov_val)) {
-      covS <- cov_val
+    # Fallback for the rare shape where C1P1 is absent: first i.sol entry.
+    if ((is.na(inclS) || is.na(covS)) && !is.null(sol$i.sol) && length(sol$i.sol) > 0) {
+      ic_isol2 <- try(sol$i.sol[[1]]$IC$sol.incl.cov, silent = TRUE)
+      if (!inherits(ic_isol2, "try-error") && !is.null(ic_isol2)) {
+        if (is.na(inclS) && !is.null(ic_isol2$inclS)) inclS <- ic_isol2$inclS[1]
+        if (is.na(covS)  && !is.null(ic_isol2$covS))  covS  <- ic_isol2$covS[1]
+      }
     }
-  }
-  
-  # Path 2: sol$IC$overall (for multiple solutions - overall metrics)
-  if (is.na(inclS)) {
-    incl_val <- try(sol$IC$overall$sol.incl.cov$inclS, silent = TRUE)
-    if (!inherits(incl_val, "try-error") && !is.null(incl_val)) {
-      inclS <- incl_val
+  } else {
+    # --- Parsimonious / complex solution: 2.0.3 behavior (includes the Bug A fix).
+
+    # Path 1: sol$IC$sol.incl.cov (single solution).
+    if (is.na(inclS)) {
+      incl_val <- try(sol$IC$sol.incl.cov$inclS, silent = TRUE)
+      if (!inherits(incl_val, "try-error") && !is.null(incl_val)) inclS <- incl_val
     }
-  }
-  if (is.na(covS)) {
-    cov_val <- try(sol$IC$overall$sol.incl.cov$covS, silent = TRUE)
-    if (!inherits(cov_val, "try-error") && !is.null(cov_val)) {
-      covS <- cov_val
+    if (is.na(covS)) {
+      cov_val <- try(sol$IC$sol.incl.cov$covS, silent = TRUE)
+      if (!inherits(cov_val, "try-error") && !is.null(cov_val)) covS <- cov_val
     }
-  }
-  
-  # Path 3: sol$i.sol$C1P1$IC$sol.incl.cov (for intermediate solutions with dir.exp)
-  if (is.na(inclS)) {
-    incl_val <- try(sol$i.sol$C1P1$IC$sol.incl.cov$inclS, silent = TRUE)
-    if (!inherits(incl_val, "try-error") && !is.null(incl_val)) {
-      inclS <- incl_val
+
+    # Path 1b: multiple solutions, extract_mode = "first". The displayed expression
+    # is the first solution (M1), so its fit is sol$IC$individual[[1]]$sol.incl.cov,
+    # NOT the overall aggregate (the disjunction of ALL solutions, which is >= any
+    # single solution's coverage on fuzzy data). Crisp data: individual == overall.
+    if (identical(extract_mode, "first") &&
+        !is.null(sol$IC$individual) && length(sol$IC$individual) >= 1L) {
+      ic_first <- try(sol$IC$individual[[1L]]$sol.incl.cov, silent = TRUE)
+      if (!inherits(ic_first, "try-error") && !is.null(ic_first)) {
+        if (is.na(inclS) && !is.null(ic_first$inclS)) inclS <- ic_first$inclS
+        if (is.na(covS)  && !is.null(ic_first$covS))  covS  <- ic_first$covS
+      }
     }
-  }
-  if (is.na(covS)) {
-    cov_val <- try(sol$i.sol$C1P1$IC$sol.incl.cov$covS, silent = TRUE)
-    if (!inherits(cov_val, "try-error") && !is.null(cov_val)) {
-      covS <- cov_val
+
+    # Path 2: sol$IC$overall. Appropriate for extract_mode = "all"/"essential",
+    # which summarize across all solutions, and as a fallback.
+    if (is.na(inclS)) {
+      incl_val <- try(sol$IC$overall$sol.incl.cov$inclS, silent = TRUE)
+      if (!inherits(incl_val, "try-error") && !is.null(incl_val)) inclS <- incl_val
     }
-  }
-  
-  # Path 4: First element of i.sol
-  if (is.na(inclS) && !is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    incl_val <- try(sol$i.sol[[1]]$IC$sol.incl.cov$inclS, silent = TRUE)
-    if (!inherits(incl_val, "try-error") && !is.null(incl_val)) {
-      inclS <- incl_val
-    }
-  }
-  if (is.na(covS) && !is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    cov_val <- try(sol$i.sol[[1]]$IC$sol.incl.cov$covS, silent = TRUE)
-    if (!inherits(cov_val, "try-error") && !is.null(cov_val)) {
-      covS <- cov_val
+    if (is.na(covS)) {
+      cov_val <- try(sol$IC$overall$sol.incl.cov$covS, silent = TRUE)
+      if (!inherits(cov_val, "try-error") && !is.null(cov_val)) covS <- cov_val
     }
   }
   

@@ -1,7 +1,7 @@
 Package: ThSQCA
 Type: Package
 Title: Threshold-Sweep QCA
-Version: 2.0.2
+Version: 2.0.4
 Authors@R: c(
     person("Yuki", "Toyoda", role = c("aut", "cre"),
            email = "yuki.toyoda.ds@hosei.ac.jp"),
@@ -32,15 +32,16 @@ License: MIT + file LICENSE
 URL: https://github.com/im-research-yt/ThSQCA,
         https://doi.org/10.5281/zenodo.17899390
 BugReports: https://github.com/im-research-yt/ThSQCA/issues
+Date: 2026-07-22
 Encoding: UTF-8
 LazyData: true
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-07-15 07:01:10 UTC; yukit
+Maintainer: Yuki Toyoda <yuki.toyoda.ds@hosei.ac.jp>
+Packaged: 2026-07-23 01:29:32 UTC; yukit
 Author: Yuki Toyoda [aut, cre],
   Japan Society for the Promotion of Science [fnd] (KAKENHI Grant Number
     JP20K01998)
-Maintainer: Yuki Toyoda <yuki.toyoda.ds@hosei.ac.jp>
 Repository: CRAN
-Date/Publication: 2026-07-15 07:20:02 UTC
+Date/Publication: 2026-07-23 02:40:08 UTC
