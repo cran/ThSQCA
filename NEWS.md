@@ -1,3 +1,50 @@
+# ThSQCA 2.0.5
+
+*Release date: 2026-07-23*
+
+## Bug fixes
+
+* **Fit measures are reported again when the intermediate solution itself has
+  several minimal solutions.** This is a regression introduced in 2.0.4. When
+  `dir.exp` is used and the intermediate solution has several tied minimal
+  solutions, `QCA::minimize()` splits the intermediate fit into
+  `$i.sol$C1P1$IC$individual[[k]]` and `$overall` rather than storing a flat
+  `$sol.incl.cov`, exactly as it does for the parsimonious solution. Version
+  2.0.4 read only the flat slot, so those cells reported `inclS` and `covS` as
+  `NA`. The intermediate path now follows the same cascade as the parsimonious
+  path: the displayed solution's own fit for `extract_mode = "first"`, and the
+  aggregate for `"all"` and `"essential"`. Cells that reported a fit in 2.0.4
+  are unchanged.
+* **`compute_fiss_core()` no longer biases conditions toward "core" when the
+  parsimonious solution has several tied minimal solutions.** The terms of all
+  minimal solutions were pooled before the condition-status map was built, so a
+  condition present in one minimal solution and absent in another ended up
+  holding both statuses. An intermediate term then matched whichever polarity it
+  used, and the condition was classified core either way. A status now counts
+  only where every minimal parsimonious solution agrees, following the same
+  principle as essential prime implicants: what cannot be asserted regardless of
+  which minimal solution is selected is not treated as core. Cells with a single
+  minimal parsimonious solution, which are the common case, are unaffected.
+* `compute_fiss_core()` now records `parsim_n_solutions` for each threshold and
+  warns when the parsimonious solution has tied minimal solutions, so the
+  ambiguity behind a classification is visible rather than hidden.
+* The internal chart helpers `extract_solution_metrics_for_chart()` and
+  `extract_path_metrics_for_chart()` had the same gap. There it produced not
+  `NA` but a silent fall-through to the parsimonious values, so configuration
+  charts could show the parsimonious fit and the parsimonious per-term table
+  for a displayed intermediate solution with several minimal solutions.
+
+## Other changes
+
+* If a solution is found but no fit measures can be located for it, the sweep
+  functions now emit a warning explaining that `inclS` and `covS` are `NA` for
+  that reason, instead of returning an unexplained `NA`.
+* Added regression tests for the multiple-intermediate-solution case, covering
+  `qca_extract()`, both chart helpers, `generate_report()`, and the sweep
+  functions end to end.
+
+---
+
 # ThSQCA 2.0.4
 
 *Release date: 2026-07-22*

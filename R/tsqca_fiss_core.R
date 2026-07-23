@@ -186,33 +186,89 @@ run_parsimonious <- function(truth_table, conditions) {
 #'
 #' @keywords internal
 extract_sol_terms <- function(sol) {
-  if (is.null(sol)) return(character(0))
+  models <- extract_sol_terms_by_model(sol)
+  if (length(models) == 0) return(character(0))
+  unique(unlist(models, use.names = FALSE))
+}
+
+
+#' Extract solution terms separately for each minimal solution
+#'
+#' Same sources as \code{extract_sol_terms()}, but the terms of each minimal
+#' solution (M1, M2, ...) are kept apart instead of being pooled. This is what
+#' the core/peripheral classification needs: pooling first makes a condition
+#' look as if it occurred with both polarities in "the" parsimonious solution,
+#' when in fact one minimal solution had it present and another had it absent.
+#'
+#' @param sol QCA solution object.
+#'
+#' @return List of character vectors, one per minimal solution. Empty list when
+#'   no solution is available.
+#'
+#' @keywords internal
+extract_sol_terms_by_model <- function(sol) {
+  if (is.null(sol)) return(list())
 
   # Intermediate solution stored in i.sol
   if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    terms <- character(0)
+    models <- list()
     for (entry in sol$i.sol) {
       if (!is.null(entry$solution) && length(entry$solution) > 0) {
         for (s in entry$solution) {
           parsed <- parse_solution_terms(paste(s, collapse = " + "))
-          terms  <- c(terms, parsed)
+          if (length(parsed) > 0) models[[length(models) + 1L]] <- unique(parsed)
         }
       }
     }
-    if (length(terms) > 0) return(unique(terms))
+    if (length(models) > 0) return(models)
   }
 
   # Parsimonious / complex solution in $solution
   if (!is.null(sol$solution) && length(sol$solution) > 0) {
-    terms <- character(0)
+    models <- list()
     for (s in sol$solution) {
       parsed <- parse_solution_terms(paste(s, collapse = " + "))
-      terms  <- c(terms, parsed)
+      if (length(parsed) > 0) models[[length(models) + 1L]] <- unique(parsed)
     }
-    return(unique(terms))
+    return(models)
   }
 
-  character(0)
+  list()
+}
+
+
+#' Build the parsimonious condition-status map used for core classification
+#'
+#' A condition counts as core only for a status it holds in EVERY minimal
+#' parsimonious solution. With a single minimal solution this is identical to
+#' reading that solution directly, so ordinary results are unaffected.
+#'
+#' With several tied minimal solutions, pooling their terms first (the previous
+#' behavior) meant that a condition present in M1 and absent in M2 ended up with
+#' both statuses, so an intermediate term matched whichever polarity it used and
+#' the condition was classified core either way. Requiring agreement across all
+#' minimal solutions removes that bias: what cannot be asserted regardless of
+#' which minimal solution is selected is not treated as core.
+#'
+#' @param models_terms List of character vectors, one per minimal solution
+#'   (from \code{extract_sol_terms_by_model()}).
+#' @param conditions Character vector of all condition names.
+#'
+#' @return Named list mapping each condition to the statuses it holds in every
+#'   minimal solution (possibly \code{character(0)}).
+#'
+#' @keywords internal
+build_parsim_status_map <- function(models_terms, conditions) {
+  if (length(models_terms) == 0) {
+    return(setNames(rep(list(character(0)), length(conditions)), conditions))
+  }
+  per_model <- lapply(models_terms, extract_cond_status_map, conditions = conditions)
+  map <- setNames(vector("list", length(conditions)), conditions)
+  for (cond in conditions) {
+    sets <- lapply(per_model, function(m) m[[cond]])
+    map[[cond]] <- Reduce(intersect, sets)
+  }
+  map
 }
 
 
@@ -362,23 +418,41 @@ compute_fiss_core <- function(result, conditions = NULL) {
     }
 
     # Compute parsimonious solution on same truth table
-    parsim_sol   <- run_parsimonious(tt, conditions)
-    parsim_terms <- extract_sol_terms(parsim_sol)
+    parsim_sol    <- run_parsimonious(tt, conditions)
+    parsim_models <- extract_sol_terms_by_model(parsim_sol)
+    parsim_terms  <- if (length(parsim_models) > 0) {
+      unique(unlist(parsim_models, use.names = FALSE))
+    } else {
+      character(0)
+    }
     parsim_expr  <- if (length(parsim_terms) > 0) {
       paste(parsim_terms, collapse = " + ")
     } else {
       "No solution"
     }
 
-    # Build parsimonious condition-status map
-    parsim_map <- extract_cond_status_map(parsim_terms, conditions)
+    # Build parsimonious condition-status map. A status counts only when it
+    # holds in EVERY minimal parsimonious solution, so that tied solutions
+    # cannot make a condition core under both polarities at once.
+    parsim_map <- build_parsim_status_map(parsim_models, conditions)
+
+    n_parsim_sol <- length(parsim_models)
+    if (n_parsim_sol > 1L) {
+      warning(
+        "The parsimonious solution for ", thr_key, " has ", n_parsim_sol,
+        " tied minimal solutions. A condition is treated as core only where ",
+        "all of them agree, so some conditions may be reported as peripheral.",
+        call. = FALSE
+      )
+    }
 
     # Classify each intermediate term
     if (length(interm_terms) == 0) {
       fiss_list[[thr_key]] <- list(
-        parsim_expression = parsim_expr,
-        interm_expression = interm_expr,
-        classification    = NULL
+        parsim_expression   = parsim_expr,
+        interm_expression   = interm_expr,
+        parsim_n_solutions  = n_parsim_sol,
+        classification      = NULL
       )
       next
     }
@@ -398,9 +472,10 @@ compute_fiss_core <- function(result, conditions = NULL) {
     rownames(classif_df) <- NULL
 
     fiss_list[[thr_key]] <- list(
-      parsim_expression = parsim_expr,
-      interm_expression = interm_expr,
-      classification    = classif_df
+      parsim_expression   = parsim_expr,
+      interm_expression   = interm_expr,
+      parsim_n_solutions  = n_parsim_sol,
+      classification      = classif_df
     )
   }
 

@@ -935,13 +935,23 @@ extract_path_metrics_for_chart <- function(sol, solution_index = 1) {
   # extract_solution_metrics_for_chart.
 
   # Path A (intermediate): per-term table from the intermediate solution, BEFORE
-  # sol$IC$incl.cov (which is the parsimonious per-term table).
+  # sol$IC$incl.cov (which is the parsimonious per-term table). Handles both the
+  # flat shape and the $individual shape (several intermediate solutions).
   if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    ic <- try(sol$i.sol$C1P1$IC$incl.cov, silent = TRUE)
-    if ((inherits(ic, "try-error") || is.null(ic)) && length(sol$i.sol) >= solution_index) {
-      ic <- try(sol$i.sol[[solution_index]]$IC$incl.cov, silent = TRUE)
+    isol_ic <- try(sol$i.sol$C1P1$IC, silent = TRUE)
+    if ((inherits(isol_ic, "try-error") || is.null(isol_ic)) &&
+        length(sol$i.sol) >= solution_index) {
+      isol_ic <- try(sol$i.sol[[solution_index]]$IC, silent = TRUE)
     }
-    if (!inherits(ic, "try-error") && !is.null(ic)) return(ic)
+    if (!inherits(isol_ic, "try-error") && !is.null(isol_ic)) {
+      ic <- try(isol_ic$incl.cov, silent = TRUE)
+      if (!inherits(ic, "try-error") && !is.null(ic)) return(ic)
+      if (!is.null(isol_ic$individual) &&
+          length(isol_ic$individual) >= solution_index) {
+        ic <- try(isol_ic$individual[[solution_index]]$incl.cov, silent = TRUE)
+        if (!inherits(ic, "try-error") && !is.null(ic)) return(ic)
+      }
+    }
   }
   # Path B: single solution without dir.exp.
   if (!is.null(sol$IC$incl.cov)) {
@@ -973,12 +983,27 @@ extract_solution_metrics_for_chart <- function(sol, solution_index = 1) {
   #
   # Path A (intermediate): read the intermediate solution's own fit. Checked BEFORE
   # sol$IC, whose sol.incl.cov / overall describe the PARSIMONIOUS solution.
+  # The intermediate IC has the same two shapes as sol$IC: flat when the
+  # intermediate solution is unique, and $individual/$overall when it has several
+  # minimal solutions. Without the second shape this path would silently fall
+  # through to the parsimonious values below.
   if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    ic <- try(sol$i.sol$C1P1$IC$sol.incl.cov, silent = TRUE)
-    if ((inherits(ic, "try-error") || is.null(ic)) && length(sol$i.sol) >= solution_index) {
-      ic <- try(sol$i.sol[[solution_index]]$IC$sol.incl.cov, silent = TRUE)
+    isol_ic <- try(sol$i.sol$C1P1$IC, silent = TRUE)
+    if ((inherits(isol_ic, "try-error") || is.null(isol_ic)) &&
+        length(sol$i.sol) >= solution_index) {
+      isol_ic <- try(sol$i.sol[[solution_index]]$IC, silent = TRUE)
     }
-    if (!inherits(ic, "try-error") && !is.null(ic)) return(mk(ic))
+    if (!inherits(isol_ic, "try-error") && !is.null(isol_ic)) {
+      ic <- try(isol_ic$sol.incl.cov, silent = TRUE)
+      if (!inherits(ic, "try-error") && !is.null(ic)) return(mk(ic))
+      if (!is.null(isol_ic$individual) &&
+          length(isol_ic$individual) >= solution_index) {
+        ic <- try(isol_ic$individual[[solution_index]]$sol.incl.cov, silent = TRUE)
+        if (!inherits(ic, "try-error") && !is.null(ic)) return(mk(ic))
+      }
+      ic <- try(isol_ic$overall$sol.incl.cov, silent = TRUE)
+      if (!inherits(ic, "try-error") && !is.null(ic)) return(mk(ic))
+    }
   }
   # Path B (single parsimonious/complex solution).
   if (!is.null(sol$IC$sol.incl.cov)) return(mk(sol$IC$sol.incl.cov))

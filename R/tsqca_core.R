@@ -226,20 +226,44 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
     # --- Intermediate solution (dir.exp): fit comes from the intermediate itself.
     # sol$IC (sol.incl.cov / individual / overall) all describe the PARSIMONIOUS
     # solution, so reading them here attaches the parsimonious fit to the displayed
-    # intermediate formula. The intermediate fit is under sol$i.sol$C1P1$IC. This
-    # is wrong regardless of extract_mode and regardless of how many minimal
-    # solutions exist, so no sol$IC fallback is used.
-    ic_isol <- try(sol$i.sol$C1P1$IC$sol.incl.cov, silent = TRUE)
-    if (!inherits(ic_isol, "try-error") && !is.null(ic_isol)) {
-      if (!is.null(ic_isol$inclS)) inclS <- ic_isol$inclS[1]
-      if (!is.null(ic_isol$covS))  covS  <- ic_isol$covS[1]
+    # intermediate formula. The intermediate fit is under sol$i.sol$C1P1$IC, and no
+    # sol$IC fallback is used.
+    #
+    # That intermediate IC has the SAME two shapes as sol$IC: flat
+    # ($sol.incl.cov) when the intermediate solution is unique, and split into
+    # $individual[[k]] / $overall when the intermediate solution itself has
+    # several minimal solutions. Both shapes must be handled, otherwise the
+    # multiple-intermediate-solution case yields no fit at all.
+    isol_ic <- try(sol$i.sol$C1P1$IC, silent = TRUE)
+    if (inherits(isol_ic, "try-error") || is.null(isol_ic)) {
+      # Rare shape where C1P1 is absent: first i.sol entry.
+      isol_ic <- try(sol$i.sol[[1]]$IC, silent = TRUE)
     }
-    # Fallback for the rare shape where C1P1 is absent: first i.sol entry.
-    if ((is.na(inclS) || is.na(covS)) && !is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-      ic_isol2 <- try(sol$i.sol[[1]]$IC$sol.incl.cov, silent = TRUE)
-      if (!inherits(ic_isol2, "try-error") && !is.null(ic_isol2)) {
-        if (is.na(inclS) && !is.null(ic_isol2$inclS)) inclS <- ic_isol2$inclS[1]
-        if (is.na(covS)  && !is.null(ic_isol2$covS))  covS  <- ic_isol2$covS[1]
+    if (!inherits(isol_ic, "try-error") && !is.null(isol_ic)) {
+      # Path A1: unique intermediate solution.
+      ic_flat <- try(isol_ic$sol.incl.cov, silent = TRUE)
+      if (!inherits(ic_flat, "try-error") && !is.null(ic_flat)) {
+        if (!is.null(ic_flat$inclS)) inclS <- ic_flat$inclS[1]
+        if (!is.null(ic_flat$covS))  covS  <- ic_flat$covS[1]
+      }
+      # Path A2: several intermediate solutions, extract_mode = "first". The
+      # displayed expression is the first of them, so use its own fit.
+      if (identical(extract_mode, "first") && (is.na(inclS) || is.na(covS)) &&
+          !is.null(isol_ic$individual) && length(isol_ic$individual) >= 1L) {
+        ic_ind <- try(isol_ic$individual[[1L]]$sol.incl.cov, silent = TRUE)
+        if (!inherits(ic_ind, "try-error") && !is.null(ic_ind)) {
+          if (is.na(inclS) && !is.null(ic_ind$inclS)) inclS <- ic_ind$inclS[1]
+          if (is.na(covS)  && !is.null(ic_ind$covS))  covS  <- ic_ind$covS[1]
+        }
+      }
+      # Path A3: aggregate across the intermediate solutions. Correct for
+      # "all"/"essential" (which summarize across solutions) and a last resort.
+      if (is.na(inclS) || is.na(covS)) {
+        ic_ov <- try(isol_ic$overall$sol.incl.cov, silent = TRUE)
+        if (!inherits(ic_ov, "try-error") && !is.null(ic_ov)) {
+          if (is.na(inclS) && !is.null(ic_ov$inclS)) inclS <- ic_ov$inclS[1]
+          if (is.na(covS)  && !is.null(ic_ov$covS))  covS  <- ic_ov$covS[1]
+        }
       }
     }
   } else {
@@ -282,7 +306,26 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
   
   # Get total solution count (always use get_n_solutions for consistency)
   n_solutions <- get_n_solutions(sol)
-  
+
+  # A solution was found, but no fit measures could be located for it. This
+  # should not happen for the shapes QCA currently produces; if a future version
+  # stores them elsewhere, tell the user why the cell is empty rather than
+  # returning a silent NA that looks like a computation failure.
+  if (is.na(inclS) || is.na(covS)) {
+    warning(
+      "A solution was found, but its consistency/coverage could not be read ",
+      "from the QCA result, so inclS/covS are reported as NA",
+      if (used_isol) " (intermediate solution)" else "",
+      ifelse(is.na(n_solutions) || n_solutions <= 1, "",
+             paste0(" (", n_solutions, " minimal solutions)")),
+      ". The solution expression itself is unaffected. Please report this ",
+      "together with your QCA package version at ",
+      "https://github.com/im-research-yt/ThSQCA/issues",
+      call. = FALSE
+    )
+  }
+
+
   # Mode-specific processing
   if (extract_mode == "first") {
     expression <- paste(sol_list[[1]], collapse = " + ")

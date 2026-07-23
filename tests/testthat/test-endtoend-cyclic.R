@@ -108,3 +108,59 @@ test_that("ctSweepS end-to-end shares the corrected extraction", {
   hand <- .covS_of_expression(r$expression[1], qd, y)
   expect_equal(r$covS[1], hand, tolerance = 2e-3)
 })
+
+test_that("multiple INTERMEDIATE solutions report a fit, not NA (regression)", {
+  skip_if_not_installed("QCA")
+  # Same cyclic construction, but with dir.exp: the intermediate solution itself
+  # has several minimal solutions, so its IC is split into $individual/$overall
+  # rather than a flat $sol.incl.cov. Reading only the flat slot returned NA.
+  d <- .cyclic_ms_data()
+  c3 <- c("A", "B", "C")
+  dd <- d[c3]; dd$Y <- as.integer(d$Y >= 5)
+  tt <- QCA::truthTable(dd, outcome = "Y", conditions = c3,
+                        incl.cut = 0.80, n.cut = 1, complete = FALSE)
+  sol <- QCA::minimize(tt, include = "?", dir.exp = c(A = 1, B = 1, C = 1),
+                       details = TRUE)
+
+  isol <- sol$i.sol$C1P1
+  skip_if(length(isol$solution) < 2)          # precondition: several intermediates
+  expect_null(isol$IC$sol.incl.cov)           # precondition: split IC shape
+  ind1 <- isol$IC$individual[[1]]$sol.incl.cov
+  ov   <- isol$IC$overall$sol.incl.cov
+
+  info <- ThSQCA:::qca_extract(sol, "first")
+  expect_false(is.na(info$covS))              # the regression: this was NA
+  expect_false(is.na(info$inclS))
+  expect_equal(info$covS,  ind1$covS[1],  tolerance = 1e-6)
+  expect_equal(info$inclS, ind1$inclS[1], tolerance = 1e-6)
+
+  # "all" summarizes across the intermediate solutions, so it uses the aggregate.
+  info_all <- ThSQCA:::qca_extract(sol, "all")
+  expect_equal(info_all$covS, ov$covS[1], tolerance = 1e-6)
+
+  # Chart extractors must also return the first intermediate solution's fit and
+  # its per-term table (not the parsimonious ones).
+  cm <- ThSQCA:::extract_solution_metrics_for_chart(sol, 1)
+  expect_equal(cm$covS, ind1$covS[1], tolerance = 1e-6)
+  pm <- ThSQCA:::extract_path_metrics_for_chart(sol, 1)
+  expect_false(is.null(pm))
+  expect_equal(nrow(pm), length(isol$solution[[1]]))
+
+  # And end to end through the sweep table.
+  emptyX <- stats::setNames(numeric(0), character(0))
+  r <- otSweep(dat = d, outcome = "Y", conditions = c3, sweep_range = 5,
+               thrX = emptyX, pre_calibrated = c3,
+               dir.exp = c(A = 1, B = 1, C = 1), include = "?",
+               incl.cut = 0.80, n.cut = 1, return_details = FALSE)
+  expect_false(is.na(r$covS[1]))
+  expect_equal(r$covS[1], ind1$covS[1], tolerance = 1e-6)
+})
+
+test_that("a solution with unreadable fit warns instead of returning a silent NA", {
+  # Mock a result whose solution exists but whose IC carries no fit measures.
+  sol <- list(solution = list(c("A", "B")), IC = list())
+  expect_warning(info <- ThSQCA:::qca_extract(sol, "first"),
+                 "could not be read")
+  expect_true(is.na(info$covS))
+  expect_equal(info$expression, "A + B")   # the expression is still reported
+})
