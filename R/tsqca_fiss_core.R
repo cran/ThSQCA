@@ -209,6 +209,19 @@ extract_sol_terms <- function(sol) {
 extract_sol_terms_by_model <- function(sol) {
   if (is.null(sol)) return(list())
 
+  # Deduplicate models by term-set content. When the solution spans several
+  # prime implicant charts, each chart's $solution may report the same model,
+  # so a plain chart-by-chart loop counts one model several times. The
+  # core/peripheral classification itself is agreement-based and so is
+  # insensitive to duplicates, but the reported parsim_n_solutions (and the
+  # warning derived from it) would otherwise be inflated.
+  dedup_models <- function(models) {
+    if (length(models) <= 1L) return(models)
+    keys <- vapply(models, function(x) paste(sort(as.character(x)), collapse = " | "),
+                   character(1))
+    models[!duplicated(keys)]
+  }
+
   # Intermediate solution stored in i.sol
   if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
     models <- list()
@@ -220,7 +233,7 @@ extract_sol_terms_by_model <- function(sol) {
         }
       }
     }
-    if (length(models) > 0) return(models)
+    if (length(models) > 0) return(dedup_models(models))
   }
 
   # Parsimonious / complex solution in $solution
@@ -230,7 +243,7 @@ extract_sol_terms_by_model <- function(sol) {
       parsed <- parse_solution_terms(paste(s, collapse = " + "))
       if (length(parsed) > 0) models[[length(models) + 1L]] <- unique(parsed)
     }
-    return(models)
+    return(dedup_models(models))
   }
 
   list()
@@ -506,7 +519,9 @@ build_fiss_matrix <- function(interm_terms, classification,
   n_terms <- length(interm_terms)
   n_conds <- length(conditions)
 
-  col_names <- paste0(thr_label, " (M", seq_len(n_terms), ")")
+  # Terms are labeled T1, T2, ... rather than M1, M2, ...: M is reserved for
+  # whole alternative minimal solutions elsewhere in the package.
+  col_names <- paste0(thr_label, " (T", seq_len(n_terms), ")")
 
   mat <- matrix(
     "",
@@ -677,12 +692,27 @@ generate_fiss_chart <- function(result,
 #' res_fiss <- compute_fiss_core(res)
 #' print_fiss_summary(res_fiss, thr_key = "7")
 #' }
-print_fiss_summary <- function(result, thr_key, language = c("en", "ja")) {
+print_fiss_summary <- function(result, thr_key = NULL, language = c("en", "ja")) {
 
   language <- match.arg(language)
 
   if (is.null(result$fiss_core)) {
     stop("No fiss_core data. Run compute_fiss_core() first.")
+  }
+
+  # thr_key omitted: summarize every threshold level rather than erroring out
+  # with R's generic "argument is missing" message. Callers previously had to
+  # inspect names(result$fiss_core) themselves to discover valid keys.
+  if (is.null(thr_key)) {
+    keys <- names(result$fiss_core)
+    if (length(keys) == 0) {
+      stop("No threshold levels found in result$fiss_core.", call. = FALSE)
+    }
+    out <- list()
+    for (k in keys) {
+      out[[k]] <- print_fiss_summary(result, thr_key = k, language = language)
+    }
+    return(invisible(out))
   }
 
   thr_key <- as.character(thr_key)
@@ -728,7 +758,10 @@ print_fiss_summary <- function(result, thr_key, language = c("en", "ja")) {
     periph_pres <- rows_j$condition[rows_j$type == "peripheral" & rows_j$status == "present"]
     periph_abs  <- rows_j$condition[rows_j$type == "peripheral" & rows_j$status == "absent"]
 
-    cat(if (language == "ja") paste0("[\u9805 M", j, "] ") else paste0("[Term M", j, "] "),
+    # Term numbering uses "T" (not "M"): in print(sol) and elsewhere in this
+    # package, M1/M2 denote whole SOLUTIONS (alternative minimal solutions),
+    # so reusing M for product terms within one solution is ambiguous.
+    cat(if (language == "ja") paste0("[\u9805 T", j, "] ") else paste0("[Term T", j, "] "),
         term, "\n")
 
     if (length(core_pres) > 0)

@@ -97,38 +97,82 @@ validate_pre_calibrated <- function(pre_calibrated, conditions, dat) {
   invisible(NULL)
 }
 
+#' Collect and deduplicate the solution models attached to a QCA::minimize()
+#' result
+#'
+#' When \code{dir.exp} is specified and the minimization produces more than
+#' one prime implicant chart (QCA's own \code{C1}, \code{C2}, ... indexing,
+#' visible as \code{"From C1P1, C2P1:"} in \code{print()}), \code{sol$i.sol}
+#' contains one list entry per chart/path combination (e.g. \code{C1P1},
+#' \code{C2P1}). Each entry's own \code{$solution} field is computed
+#' independently by \code{QCA::minimize()} (via its internal
+#' \code{getSolution()} call) and is NOT guaranteed to hold only that chart's
+#' own model: depending on the data, it may already enumerate the full,
+#' cross-chart set of tied minimal models. Concatenating every chart's
+#' \code{$solution} list (the previous approach used here and in
+#' \code{generate_report()}) therefore risks double- or N-fold counting the
+#' same model, inflating the reported number of solutions.
+#'
+#' This helper performs the same enumeration, then deduplicates by comparing
+#' each model's term set (order-independent), so structurally identical
+#' models are counted once regardless of which chart(s) produced them. This
+#' mirrors the manual "remove duplicate Boolean expressions" step that is
+#' standard practice when reporting multiple minimal solutions by hand.
+#'
+#' @param sol A solution object returned by \code{QCA::minimize()}.
+#' @return A list of unique solution term-vectors, or \code{NULL} if none
+#'   were found.
+#' @note When dir.exp is specified, the true Intermediate solution is stored in
+#'   sol$i.sol, not sol$solution (which contains the Parsimonious solution).
+#' @keywords internal
+collect_unique_i_sol <- function(sol) {
+  if (is.null(sol)) return(NULL)
+
+  raw <- list()
+
+  # Priority 1: i.sol structure (contains true Intermediate solution when dir.exp specified)
+  if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
+    for (model_name in names(sol$i.sol)) {
+      model_sols <- sol$i.sol[[model_name]]$solution
+      if (!is.null(model_sols) && length(model_sols) > 0) {
+        for (s in model_sols) {
+          raw <- c(raw, list(s))
+        }
+      }
+    }
+  }
+
+  # Fallback: sol$solution (for Parsimonious or when dir.exp not specified)
+  if (length(raw) == 0) {
+    sol_list <- try(sol$solution, silent = TRUE)
+    if (!inherits(sol_list, "try-error") && !is.null(sol_list) && length(sol_list) > 0) {
+      raw <- sol_list
+    }
+  }
+
+  if (length(raw) == 0) return(NULL)
+
+  # Deduplicate by term-set content: same terms regardless of order/source
+  # chart are the same model.
+  keys <- vapply(raw, function(x) paste(sort(as.character(x)), collapse = " | "), character(1))
+  raw[!duplicated(keys)]
+}
+
 #' Get the number of intermediate solutions
 #'
 #' @param sol A solution object returned by \code{QCA::minimize()}.
 #' @return Integer. Number of intermediate solutions, or 0 if none.
 #' @note When dir.exp is specified, the true Intermediate solution is stored in
 #'   sol$i.sol, not sol$solution (which contains the Parsimonious solution).
+#'   See \code{\link{collect_unique_i_sol}} for why deduplication is required
+#'   when multiple prime implicant charts are present.
 #' @keywords internal
 get_n_solutions <- function(sol) {
   if (is.null(sol)) return(0L)
-  
 
-  # Priority 1: i.sol structure (contains true Intermediate solution when dir.exp specified)
-  if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    total_count <- 0L
-    for (model_name in names(sol$i.sol)) {
-      model_sols <- sol$i.sol[[model_name]]$solution
-      if (!is.null(model_sols) && length(model_sols) > 0) {
-        total_count <- total_count + length(model_sols)
-      }
-    }
-    if (total_count > 0) {
-      return(total_count)
-    }
-  }
-  
-  # Fallback: sol$solution (for Parsimonious or when dir.exp not specified)
-  sol_list <- try(sol$solution, silent = TRUE)
-  if (!inherits(sol_list, "try-error") && !is.null(sol_list) && length(sol_list) > 0) {
-    return(length(sol_list))
-  }
-  
-  return(0L)
+  uniq <- collect_unique_i_sol(sol)
+  if (is.null(uniq)) return(0L)
+  length(uniq)
 }
 
 #' Extract solution information from a QCA minimization result
@@ -336,10 +380,28 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
       n_solutions = n_solutions
     ))
   }
-  
+
+  # For the modes that summarize ACROSS solutions ("all", "essential"), the
+  # model list must be the same enumeration that n_solutions counts, otherwise
+  # the reported count and the reported terms describe different things.
+  #
+  # sol_list above is deliberately chart-1-only (sol$i.sol$C1P1$solution),
+  # which is right for "first" because C1P1's first entry is the displayed M1.
+  # It is NOT a safe basis for cross-solution summaries: when the intermediate
+  # solution spans several prime implicant charts, whether C1P1$solution
+  # happens to enumerate every chart's model or only its own is an
+  # implementation detail of QCA::minimize()'s internal getSolution() call, not
+  # a documented guarantee. collect_unique_i_sol() enumerates every chart and
+  # deduplicates by term-set content, and is what get_n_solutions() counts, so
+  # using it here keeps the count and the terms consistent by construction.
+  models <- collect_unique_i_sol(sol)
+  if (is.null(models) || length(models) == 0) {
+    models <- sol_list
+  }
+
   if (extract_mode == "all") {
-    all_exprs <- sapply(seq_along(sol_list), function(i) {
-      paste0("M", i, ": ", paste(sol_list[[i]], collapse = " + "))
+    all_exprs <- sapply(seq_along(models), function(i) {
+      paste0("M", i, ": ", paste(models[[i]], collapse = " + "))
     })
     expression <- paste(all_exprs, collapse = "; ")
     return(list(
@@ -352,7 +414,7 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
   
   if (extract_mode == "essential") {
     # Split each solution into terms
-    sol_terms <- lapply(sol_list, function(x) {
+    sol_terms <- lapply(models, function(x) {
       unlist(strsplit(paste(x, collapse = " + "), " \\+ "))
     })
     

@@ -1,7 +1,7 @@
 Package: ThSQCA
 Type: Package
 Title: Threshold-Sweep QCA
-Version: 2.0.5
+Version: 2.0.6
 Authors@R: c(
     person("Yuki", "Toyoda", role = c("aut", "cre"),
            email = "yuki.toyoda.ds@hosei.ac.jp"),
@@ -39,9 +39,9 @@ Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
 Maintainer: Yuki Toyoda <yuki.toyoda.ds@hosei.ac.jp>
-Packaged: 2026-07-23 05:50:04 UTC; yukit
+Packaged: 2026-07-31 14:52:36 UTC; yukit
 Author: Yuki Toyoda [aut, cre],
   Japan Society for the Promotion of Science [fnd] (KAKENHI Grant Number
     JP20K01998)
 Repository: CRAN
-Date/Publication: 2026-07-23 10:40:10 UTC
+Date/Publication: 2026-07-31 16:10:12 UTC

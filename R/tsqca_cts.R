@@ -67,6 +67,15 @@
 #'     \code{threshold}, \code{thrX_vec}, \code{truth_table}, \code{solution}
 #' }
 #'
+#' Note that \code{return_details} changes the \emph{type} of the returned
+#' object, not just its contents: with \code{TRUE} the summary table is at
+#' \code{result$summary}, whereas with \code{FALSE} the summary table
+#' \emph{is} the returned object and \code{result$summary} is \code{NULL}.
+#' Code intended to work under both settings should branch on
+#' \code{inherits(result, "data.frame")} (or simply always pass
+#' \code{return_details = TRUE}) rather than assuming \code{result$summary}
+#' exists.
+#'
 #' @importFrom QCA truthTable minimize
 #' @export
 #' @examples
@@ -424,8 +433,17 @@ ctSweepS <- function(dat,
 #' @param sweep_list Named list. Each element is a numeric vector of
 #'   candidate thresholds for the corresponding X. Names must match
 #'   \code{conditions}. Variables listed in \code{pre_calibrated} do not
-#'   need a \code{sweep_list} entry.
+#'   need a \code{sweep_list} entry. Every condition must receive a threshold
+#'   from one of \code{sweep_list}, \code{pre_calibrated}, or
+#'   \code{thrX_default}; a condition covered by none of these raises an
+#'   error. To hold a condition at a fixed value while sweeping others, give
+#'   it a length-one entry (e.g. \code{list(SPV = 6:8, PRD = 7)}).
 #' @param thrY Numeric. Threshold for Y (fixed).
+#' @param thrX_default Numeric or \code{NULL}. Threshold used to binarize any
+#'   condition that appears in neither \code{sweep_list} nor
+#'   \code{pre_calibrated}, mirroring the argument of the same name in
+#'   \code{\link{ctSweepS}}. Default is \code{NULL}, in which case such a
+#'   condition is an error rather than being silently dropped.
 #' @param pre_calibrated Character vector or \code{NULL}. Names of condition
 #'   variables that have been pre-calibrated (e.g., via \code{QCA::calibrate()})
 #'   and should be passed through to \code{QCA::truthTable()} without
@@ -475,6 +493,15 @@ ctSweepS <- function(dat,
 #'   \item \code{details} — per-combination list of
 #'     \code{combo_id}, \code{thrX_vec}, \code{truth_table}, \code{solution}
 #' }
+#'
+#' Note that \code{return_details} changes the \emph{type} of the returned
+#' object, not just its contents: with \code{TRUE} the summary table is at
+#' \code{result$summary}, whereas with \code{FALSE} the summary table
+#' \emph{is} the returned object and \code{result$summary} is \code{NULL}.
+#' Code intended to work under both settings should branch on
+#' \code{inherits(result, "data.frame")} (or simply always pass
+#' \code{return_details = TRUE}) rather than assuming \code{result$summary}
+#' exists.
 #'
 #' @importFrom QCA truthTable minimize
 #' @export
@@ -569,6 +596,7 @@ ctSweepS <- function(dat,
 ctSweepM <- function(dat, 
                      outcome = NULL, conditions = NULL,
                      sweep_list, thrY,
+                     thrX_default = NULL,
                      pre_calibrated = NULL,
                      dir.exp = NULL, include = "",
                      incl.cut = 0.8, n.cut = 1, pri.cut = 0,
@@ -613,6 +641,26 @@ ctSweepM <- function(dat,
   }
   
   extract_mode <- match.arg(extract_mode)
+  
+  # === Validate coverage of all conditions (Issue: silent "No solution") ===
+  # Every condition must get a binarization threshold from somewhere: either
+  # sweep_list (swept or held at a fixed value), pre_calibrated (already fuzzy),
+  # or thrX_default. A condition covered by none of these previously had no
+  # column created in dat_bin at all, which made truthTable() fail and produced
+  # "No solution" in every cell with no error or warning.
+  uncovered <- setdiff(conditions, c(names(sweep_list), pre_calibrated))
+  if (length(uncovered) > 0 && is.null(thrX_default)) {
+    stop("Condition(s) not covered by 'sweep_list', 'pre_calibrated', or ",
+         "'thrX_default': ", paste(uncovered, collapse = ", "), ".\n",
+         "Every condition needs a threshold. Either add them to 'sweep_list' ",
+         "as fixed values (e.g. sweep_list = list(",
+         paste(names(sweep_list)[1], " = ", 
+               if (length(sweep_list) > 0) paste0(min(sweep_list[[1]]), ":", max(sweep_list[[1]])) else "6:8",
+               sep = ""),
+         ", ", paste(paste0(uncovered, " = 7"), collapse = ", "), ")), ",
+         "or supply 'thrX_default' to binarize them all at one value.",
+         call. = FALSE)
+  }
   
   combo_mat <- expand.grid(
     sweep_list,
@@ -692,6 +740,10 @@ ctSweepM <- function(dat,
         dat_bin[[x]] <- dat[[x]]
       } else if (x %in% names(thrX_vec)) {
         dat_bin[[x]] <- qca_bin(dat[[x]], thrX_vec[x])
+      } else {
+        # Not swept and not pre-calibrated: fall back to thrX_default.
+        # Guaranteed non-NULL here by the validation above.
+        dat_bin[[x]] <- qca_bin(dat[[x]], thrX_default)
       }
     }
     

@@ -4,7 +4,7 @@
 \alias{print_fiss_summary}
 \title{Print Fiss core/peripheral summary for a single threshold}
 \usage{
-print_fiss_summary(result, thr_key, language = c("en", "ja"))
+print_fiss_summary(result, thr_key = NULL, language = c("en", "ja"))
 }
 \arguments{
 \item{result}{Sweep result augmented by \code{\link{compute_fiss_core}}.}

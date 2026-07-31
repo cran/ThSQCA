@@ -327,7 +327,10 @@ build_config_matrix <- function(paths, conditions = NULL, symbols) {
   
   mat <- matrix("", nrow = n_conds, ncol = n_paths)
   rownames(mat) <- conditions
-  colnames(mat) <- paste0("M", seq_len(n_paths))
+  # Columns are product terms (paths) within ONE solution, so they are labeled
+  # T1, T2, ... "M1", "M2" are reserved for whole alternative minimal SOLUTIONS
+  # (as in print(sol)); reusing M here made the two levels indistinguishable.
+  colnames(mat) <- paste0("T", seq_len(n_paths))
   
   for (j in seq_along(paths)) {
     parsed <- parse_path_conditions(paths[j])
@@ -820,24 +823,15 @@ get_config_labels <- function(language) {
 extract_solution_list <- function(sol) {
   if (is.null(sol)) return(list())
   
-  # Method 1: Through i.sol structure (true Intermediate when dir.exp specified)
-  if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-    # Collect solutions from all i.sol entries
-    solutions <- list()
-    for (isol_name in names(sol$i.sol)) {
-      isol_sols <- sol$i.sol[[isol_name]]$solution
-      if (!is.null(isol_sols) && length(isol_sols) > 0) {
-        for (s in isol_sols) {
-          solutions <- c(solutions, list(s))
-        }
-      }
-    }
-    if (length(solutions) > 0) return(solutions)
-  }
-  
-  # Method 2: Direct $solution (Parsimonious or when dir.exp not specified)
-  if (!is.null(sol$solution) && length(sol$solution) > 0) {
-    return(sol$solution)
+  # Methods 1-2: QCA::minimize() result. collect_unique_i_sol() handles both the
+  # i.sol structure (true Intermediate when dir.exp specified) and the
+  # $solution fallback (Parsimonious / complex), and deduplicates models that
+  # several prime implicant charts report identically. Counting those duplicates
+  # separately previously made generate_config_chart() report an inflated number
+  # of equivalent solutions and emit one identical table per duplicate.
+  if (!is.null(sol$i.sol) || !is.null(sol$solution)) {
+    solutions <- collect_unique_i_sol(sol)
+    if (!is.null(solutions) && length(solutions) > 0) return(solutions)
   }
   
   # Method 3: If passed as simple character vector of paths

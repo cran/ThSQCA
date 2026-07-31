@@ -402,29 +402,11 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
       writeLines("#### Solution\n", con)
       writeLines(paste0("**Number of Solutions**: ", n_sol, "\n"), con)
       
-      # Get solution list (i.sol first for true Intermediate when dir.exp specified)
-      sol_list <- NULL
-      if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-        all_sols <- list()
-        for (model_name in names(sol$i.sol)) {
-          model_sols <- sol$i.sol[[model_name]]$solution
-          if (!is.null(model_sols) && length(model_sols) > 0) {
-            for (s in model_sols) {
-              all_sols <- c(all_sols, list(s))
-            }
-          }
-        }
-        if (length(all_sols) > 0) {
-          sol_list <- all_sols
-        }
-      }
-      # Fallback: sol$solution (Parsimonious or when dir.exp not specified)
-      if (is.null(sol_list) || length(sol_list) == 0) {
-        if (!is.null(sol$solution) && length(sol$solution) > 0) {
-          sol_list <- sol$solution
-        }
-      }
-      
+      # Get solution list (i.sol first for true Intermediate when dir.exp
+      # specified). Deduplicated across prime implicant charts; see
+      # collect_unique_i_sol() for why naive concatenation double-counts.
+      sol_list <- collect_unique_i_sol(sol)
+
       if (!is.null(sol_list) && length(sol_list) > 0) {
         writeLines("**Full Solutions**:\n", con)
         for (i in seq_along(sol_list)) {
@@ -668,24 +650,10 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
       metrics <- extract_all_metrics(ic_for_metrics, sol)
       n_sol <- get_n_solutions(sol)
       
-      # Count essential prime implicants (i.sol first for true Intermediate)
+      # Count essential prime implicants (i.sol first for true Intermediate).
+      # Deduplicated across prime implicant charts; see collect_unique_i_sol().
       n_essential <- 0
-      sol_list <- NULL
-      if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-        all_sols <- list()
-        for (model_name in names(sol$i.sol)) {
-          model_sols <- sol$i.sol[[model_name]]$solution
-          if (!is.null(model_sols) && length(model_sols) > 0) {
-            for (s in model_sols) {
-              all_sols <- c(all_sols, list(s))
-            }
-          }
-        }
-        if (length(all_sols) > 0) sol_list <- all_sols
-      }
-      if (is.null(sol_list) || length(sol_list) == 0) {
-        sol_list <- sol$solution
-      }
+      sol_list <- collect_unique_i_sol(sol)
       if (!is.null(sol_list) && length(sol_list) > 1) {
         sol_terms <- lapply(sol_list, function(x) {
           if (is.character(x)) x else unlist(strsplit(paste(x, collapse = " + "), " \\+ "))
@@ -849,31 +817,10 @@ write_simple_report <- function(result, con, include_chart = TRUE,
     
     n_sol <- get_n_solutions(sol)
     
-    # Get solution list (i.sol first for true Intermediate when dir.exp specified)
-    sol_list <- NULL
-    
-    # Try i.sol first (contains true Intermediate solution when dir.exp specified)
-    if (!is.null(sol$i.sol) && length(sol$i.sol) > 0) {
-      all_sols <- list()
-      for (model_name in names(sol$i.sol)) {
-        model_sols <- sol$i.sol[[model_name]]$solution
-        if (!is.null(model_sols) && length(model_sols) > 0) {
-          for (s in model_sols) {
-            all_sols <- c(all_sols, list(s))
-          }
-        }
-      }
-      if (length(all_sols) > 0) {
-        sol_list <- all_sols
-      }
-    }
-    
-    # Fallback to sol$solution (Parsimonious or when dir.exp not specified)
-    if (is.null(sol_list) || length(sol_list) == 0) {
-      if (!is.null(sol$solution) && length(sol$solution) > 0) {
-        sol_list <- sol$solution
-      }
-    }
+    # Get solution list (i.sol first for true Intermediate when dir.exp
+    # specified). Deduplicated across prime implicant charts; see
+    # collect_unique_i_sol() for why naive concatenation double-counts.
+    sol_list <- collect_unique_i_sol(sol)
     
     if (!is.null(sol_list) && length(sol_list) > 0) {
       writeLines(paste0("### ", label, "\n"), con)

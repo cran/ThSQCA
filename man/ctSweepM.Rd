@@ -10,6 +10,7 @@ ctSweepM(
   conditions = NULL,
   sweep_list,
   thrY,
+  thrX_default = NULL,
   pre_calibrated = NULL,
   dir.exp = NULL,
   include = "",
@@ -33,9 +34,19 @@ tilde prefix (e.g., \code{"~Y"}) following QCA package conventions.}
 \item{sweep_list}{Named list. Each element is a numeric vector of
 candidate thresholds for the corresponding X. Names must match
 \code{conditions}. Variables listed in \code{pre_calibrated} do not
-need a \code{sweep_list} entry.}
+need a \code{sweep_list} entry. Every condition must receive a threshold
+from one of \code{sweep_list}, \code{pre_calibrated}, or
+\code{thrX_default}; a condition covered by none of these raises an
+error. To hold a condition at a fixed value while sweeping others, give
+it a length-one entry (e.g. \code{list(SPV = 6:8, PRD = 7)}).}
 
 \item{thrY}{Numeric. Threshold for Y (fixed).}
+
+\item{thrX_default}{Numeric or \code{NULL}. Threshold used to binarize any
+condition that appears in neither \code{sweep_list} nor
+\code{pre_calibrated}, mirroring the argument of the same name in
+\code{\link{ctSweepS}}. Default is \code{NULL}, in which case such a
+condition is an error rather than being silently dropped.}
 
 \item{pre_calibrated}{Character vector or \code{NULL}. Names of condition
 variables that have been pre-calibrated (e.g., via \code{QCA::calibrate()})
@@ -95,6 +106,15 @@ If \code{return_details = TRUE}, a list with:
   \item \code{details} — per-combination list of
     \code{combo_id}, \code{thrX_vec}, \code{truth_table}, \code{solution}
 }
+
+Note that \code{return_details} changes the \emph{type} of the returned
+object, not just its contents: with \code{TRUE} the summary table is at
+\code{result$summary}, whereas with \code{FALSE} the summary table
+\emph{is} the returned object and \code{result$summary} is \code{NULL}.
+Code intended to work under both settings should branch on
+\code{inherits(result, "data.frame")} (or simply always pass
+\code{return_details = TRUE}) rather than assuming \code{result$summary}
+exists.
 }
 \description{
 Performs a grid search over thresholds of multiple X variables.

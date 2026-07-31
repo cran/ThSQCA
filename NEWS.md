@@ -1,3 +1,106 @@
+# ThSQCA 2.0.6 (unreleased)
+
+## Bug fixes
+
+* **`get_n_solutions()` no longer double-counts models when the intermediate
+  solution spans multiple prime implicant charts.** When `dir.exp` produces
+  more than one prime implicant chart (QCA's own chart indexing, visible as
+  `"From C1P1, C2P1:"` in `print()`, as opposed to multiple parsimonious
+  paths within a single chart, `"From C1P1, C1P2:"`), `sol$i.sol` holds one
+  list entry per chart/path combination. Each entry's own `$solution` field
+  is computed independently by `QCA::minimize()` and is not guaranteed to be
+  chart-exclusive: depending on the data, it may already enumerate the full,
+  cross-chart set of tied minimal models. Summing `length($solution)` across
+  every chart name, as `get_n_solutions()` previously did, could therefore
+  double- (or *N*-fold) count identical models. This was visible as an
+  inflated `n_solutions` in `res$summary` and in the Summary Table of
+  `generate_report()`'s Markdown output; the displayed solution formula
+  itself was already correct. A new internal helper,
+  `collect_unique_i_sol()`, performs the same enumeration and then
+  deduplicates by comparing each model's term set (order-independent), so
+  structurally identical models are counted once regardless of which
+  chart(s) produced them. `generate_report()`'s two `sol_list`-construction
+  blocks (used for the "Full Solutions" listing and as input to
+  `identify_epi()`) were updated to use the same helper; the `identify_epi()`
+  EPI/SPI content itself was unaffected by the duplication (set operations
+  are insensitive to duplicate entries), only the displayed solution count
+  was wrong. Cells with a single prime implicant chart, which are the common
+  case, are unaffected.
+* The standalone `identify_epi()` function itself was audited and confirmed
+  correct: it is a pure function over its `solutions` argument and does not
+  read `sol$solution` internally. All three internal call sites already
+  built their input via the `sol$i.sol` traversal above rather than a naive
+  `sol$solution` read; the double-counting above was the only defect found
+  in that path. Passing `sol$solution` (top level) directly to
+  `identify_epi()`, as opposed to a `sol_list` built via `sol$i.sol`, is
+  still not meaningful when `dir.exp` is specified and should be avoided:
+  that slot holds the parsimonious solution's terms in that case, not the
+  intermediate solution's.
+
+* **`qca_extract(extract_mode = "all" | "essential")` now summarizes across the
+  same set of solutions that `n_solutions` counts.** These two modes derived
+  their term sets from `sol$i.sol$C1P1$solution`, that is, from the first prime
+  implicant chart only. That slot is the right basis for
+  `extract_mode = "first"` (its first entry is the displayed M1), but whether it
+  enumerates every chart's model or only its own is an implementation detail of
+  `QCA::minimize()`'s internal `getSolution()` call rather than a documented
+  guarantee. Both modes now build their model list with
+  `collect_unique_i_sol()`, the same enumeration `get_n_solutions()` counts, so
+  the reported EPI/SPI terms and the reported solution count can no longer
+  describe different sets. On data where the first chart already enumerated
+  every model, which includes all cases checked here, the output is unchanged.
+
+* **The same duplication defect was found and fixed in two further places.** A
+  follow-up audit of every `sol$i.sol` traversal in the package turned up two
+  more sites built on the same chart-by-chart concatenation:
+  `extract_solution_list()` (used by `generate_config_chart()`), where the
+  inflated count made the chart announce too many equivalent solutions and emit
+  one identical table per duplicate; and `extract_sol_terms_by_model()` (used by
+  `compute_fiss_core()`), where it inflated the reported
+  `parsim_n_solutions` and the tie warning derived from it. The
+  core/peripheral classification itself was not affected, because it counts a
+  status only where every minimal solution agrees, which is insensitive to
+  duplicates. Both now deduplicate by term-set content. `extract_all_metrics()`
+  reads the first chart's `IC` deliberately, to match the displayed M1, and was
+  left as it is.
+
+## API consistency and usability
+
+* **`ctSweepM()` gained a `thrX_default` argument and no longer fails
+  silently.** A condition present in `conditions` but absent from both
+  `sweep_list` and `pre_calibrated` previously had no column created at all,
+  which made `QCA::truthTable()` fail and returned `"No solution"` for every
+  cell with no error or warning. Such a condition is now either binarized at
+  `thrX_default` (mirroring `ctSweepS()`) or, if `thrX_default` is not
+  supplied, reported as an error naming the uncovered conditions and showing
+  both ways to fix the call. Calls that already listed every condition in
+  `sweep_list` are unaffected and produce identical results.
+* **`print_fiss_summary()` no longer requires `thr_key`.** Omitting it raised
+  R's generic "argument is missing" error, and discovering the valid keys meant
+  inspecting `names(result$fiss_core)` by hand. `thr_key` now defaults to
+  `NULL`, which summarizes every threshold level in turn. Passing an explicit
+  `thr_key` behaves as before, including the existing error that lists the
+  available keys.
+* **Product terms in configuration charts are now labeled `T1`, `T2`, ...
+  instead of `M1`, `M2`, ...** `M1`/`M2` denote whole alternative minimal
+  *solutions* throughout the package (as in `print(sol)`), so reusing `M` for
+  the product terms *within* one solution made the two levels
+  indistinguishable. This affects the column headers produced by
+  `build_config_matrix()` (used by `config_chart_multi_solutions()` and
+  related chart functions), the term columns of the cross-threshold Fiss
+  chart, and the `[Term ...]` headings printed by `print_fiss_summary()`.
+  Charts now read, for example, "Solution M1" with term columns `T1`, `T2`.
+  This is a change to displayed output only; no computed value is affected.
+* The `@return` documentation of all four sweep functions (`otSweep()`,
+  `ctSweepS()`, `ctSweepM()`, `dtSweep()`) now states explicitly that
+  `return_details` changes the *type* of the returned object, not only its
+  contents: with `TRUE` the summary table is at `result$summary`, while with
+  `FALSE` the summary table *is* the returned object and `result$summary` is
+  `NULL`. Code meant to work under both settings should branch on
+  `inherits(result, "data.frame")` or always pass `return_details = TRUE`.
+  The behavior itself is unchanged, since altering the return type would break
+  existing scripts.
+
 # ThSQCA 2.0.5
 
 *Release date: 2026-07-23*

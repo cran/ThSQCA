@@ -92,6 +92,15 @@ If \code{return_details = TRUE}, a list with:
   \item \code{details} — per-Y-threshold list of
     \code{thrY}, \code{thrX_vec}, \code{truth_table}, \code{solution}
 }
+
+Note that \code{return_details} changes the \emph{type} of the returned
+object, not just its contents: with \code{TRUE} the summary table is at
+\code{result$summary}, whereas with \code{FALSE} the summary table
+\emph{is} the returned object and \code{result$summary} is \code{NULL}.
+Code intended to work under both settings should branch on
+\code{inherits(result, "data.frame")} (or simply always pass
+\code{return_details = TRUE}) rather than assuming \code{result$summary}
+exists.
 }
 \description{
 Sweeps the threshold of the outcome Y while keeping the thresholds of

@@ -18,5 +18,7 @@ Get the number of intermediate solutions
 \note{
 When dir.exp is specified, the true Intermediate solution is stored in
   sol$i.sol, not sol$solution (which contains the Parsimonious solution).
+  See \code{\link{collect_unique_i_sol}} for why deduplication is required
+  when multiple prime implicant charts are present.
 }
 \keyword{internal}
