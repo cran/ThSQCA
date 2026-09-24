@@ -136,6 +136,77 @@ generate_report <- function(result,
 }
 
 
+#' Outcome label used in generated reports
+#'
+#' The sweeps always binarise the outcome into an internal column named
+#' \code{"Y"}. Reports should show the user's own outcome name instead.
+#'
+#' @param params The \code{params} list of a sweep result.
+#' @return Character scalar: the outcome as supplied by the user (including a
+#'   leading \code{~} for negated outcomes), or \code{"Y"} if unavailable.
+#' @keywords internal
+#' @noRd
+report_outcome_label <- function(params) {
+  o <- NULL
+  if (!is.null(params)) {
+    o <- params$outcome
+    if (is.null(o)) o <- params$Yvar
+  }
+  if (is.null(o) || length(o) != 1L || is.na(o) || !nzchar(o)) return("Y")
+  as.character(o)
+}
+
+#' Replace the internal outcome name in QCA console output
+#'
+#' Rewrites the trailing \code{-> Y} (or \code{-> ~Y}) of QCA solution lines
+#' so that the raw QCA output pasted into a report uses the user's outcome name.
+#'
+#' @param lines Character vector (captured console output).
+#' @param label Outcome label from \code{report_outcome_label()}.
+#' @return Character vector.
+#' @keywords internal
+#' @noRd
+relabel_outcome_lines <- function(lines, label) {
+  if (identical(label, "Y")) return(lines)
+  lab_esc <- gsub("\\\\", "\\\\\\\\", label)
+  sub("->\\s*~?Y(\\s*)$", paste0("-> ", lab_esc, "\\1"), lines)
+}
+
+#' R code snippet for verifying a report with the QCA package
+#'
+#' @param params The \code{params} list of a sweep result (may be NULL).
+#' @return Character vector of code lines.
+#' @keywords internal
+#' @noRd
+verification_snippet <- function(params) {
+  outcome <- sub("^~", "", report_outcome_label(params))
+  conds <- params$conditions
+  if (is.null(conds)) conds <- params$Xvars
+  conds_str <- if (!is.null(conds) && length(conds) > 0L) {
+    paste0("c(", paste0("\"", conds, "\"", collapse = ", "), ")")
+  } else {
+    "c(...)"
+  }
+  incl <- if (!is.null(params$incl.cut)) params$incl.cut else 0.8
+  # Reproduce the solution type that was actually used.
+  min_call <- if (!is.null(params$dir.exp)) {
+    paste0("sol <- minimize(tt, include = \"?\", dir.exp = c(",
+           paste(unname(params$dir.exp), collapse = ", "), "))")
+  } else if (!is.null(params$include) && nzchar(params$include)) {
+    paste0("sol <- minimize(tt, include = \"", params$include, "\")")
+  } else {
+    "sol <- minimize(tt)"
+  }
+  c(
+    "library(QCA)",
+    "# dat_bin: your data with the outcome and conditions binarised at the thresholds of interest",
+    paste0("tt <- truthTable(dat_bin, outcome = \"", outcome, "\", conditions = ",
+           conds_str, ", incl.cut = ", incl, ")"),
+    min_call,
+    "print(sol)  # Compare with ThSQCA output above"
+  )
+}
+
 #' Write full report content
 #' @keywords internal
 write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
@@ -149,6 +220,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
   summary_df <- result$summary
   details <- result$details
   params <- result$params
+  outcome_lab <- report_outcome_label(params)
   
   # ============================================
   # 0. Analysis Overview
@@ -363,11 +435,11 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
     dat_bin <- det$dat_bin
     if (!is.null(dat_bin) && !is.null(det$thrX_vec)) {
       Xvars <- names(det$thrX_vec)
-      nec <- try(QCA::pofind(dat_bin, outcome = "Y", conditions = Xvars), silent = TRUE)
+      nec <- quiet_try(QCA::pofind(dat_bin, outcome = "Y", conditions = Xvars), silent = TRUE)
       if (!inherits(nec, "try-error") && !is.null(nec$incl.cov)) {
         writeLines("#### Necessity Analysis\n", con)
         nec_df <- nec$incl.cov
-        nec_df <- cbind(Condition = rownames(nec_df), nec_df)
+        nec_df <- cbind(Condition = trimws(rownames(nec_df)), nec_df)
         rownames(nec_df) <- NULL
         writeLines(df_to_md_table(nec_df), con)
         writeLines("\n", con)
@@ -411,7 +483,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
         writeLines("**Full Solutions**:\n", con)
         for (i in seq_along(sol_list)) {
           expr <- paste(sol_list[[i]], collapse = " + ")
-          writeLines(paste0("- M", i, ": ", escape_md(expr), " -> Y\n"), con)
+          writeLines(paste0("- M", i, ": ", escape_md(expr), " -> ", outcome_lab, "\n"), con)
         }
         writeLines("\n", con)
         
@@ -562,7 +634,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
       if (include_raw_output) {
         writeLines("#### QCA Package Output (for verification)\n", con)
         writeLines("```", con)
-        raw_output <- capture.output(print(sol))
+        raw_output <- relabel_outcome_lines(capture.output(print(sol)), outcome_lab)
         writeLines(raw_output, con)
         writeLines("```\n", con)
       }
@@ -767,10 +839,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
   writeLines(paste0("## ", section_num, ". Verification Recommendation\n"), con)
   writeLines("**For academic publications**, always verify ThSQCA results directly with the QCA package:\n", con)
   writeLines("```r", con)
-  writeLines("library(QCA)", con)
-  writeLines("tt <- truthTable(dat, outcome = \"Y\", conditions = c(...), incl.cut = 0.8)", con)
-  writeLines("sol <- minimize(tt, include = \"?\", dir.exp = c(1, 1, ...))", con)
-  writeLines("print(sol)  # Compare with ThSQCA output above", con)
+  writeLines(verification_snippet(params), con)
   writeLines("```\n", con)
   writeLines("Ensure that solution expressions, consistency, and coverage values match before publishing.", con)
   writeLines("\n", con)
@@ -790,6 +859,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
   
   summary_df <- result$summary
   details <- result$details
+  outcome_lab <- report_outcome_label(result$params)
   
   # 1. Summary Table
   writeLines("## Summary\n", con)
@@ -808,7 +878,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
     
     # Determine threshold label
     if (!is.null(det$thrY)) {
-      label <- paste0("Y >= ", det$thrY)
+      label <- paste0(sub("^~", "", outcome_lab), " >= ", det$thrY)
     } else if (!is.null(det$threshold)) {
       label <- paste0("threshold = ", det$threshold)
     } else {
@@ -828,7 +898,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
       # Show solution formula
       if (length(sol_list) == 1) {
         expr <- paste(sol_list[[1]], collapse = " + ")
-        writeLines(paste0("**Solution**: ", escape_md(expr), " -> Y\n"), con)
+        writeLines(paste0("**Solution**: ", escape_md(expr), " -> ", outcome_lab, "\n"), con)
       } else {
         writeLines(paste0("**Number of Solutions**: ", length(sol_list), "\n"), con)
         
@@ -912,7 +982,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
       if (include_raw_output) {
         writeLines("\n**QCA Package Output (for verification):**\n", con)
         writeLines("```", con)
-        raw_output <- capture.output(print(sol))
+        raw_output <- relabel_outcome_lines(capture.output(print(sol)), outcome_lab)
         writeLines(raw_output, con)
         writeLines("```\n", con)
       }
@@ -928,10 +998,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
   writeLines("## Verification Recommendation\n", con)
   writeLines("**For academic publications**, always verify ThSQCA results directly with the QCA package:\n", con)
   writeLines("```r", con)
-  writeLines("library(QCA)", con)
-  writeLines("tt <- truthTable(dat, outcome = \"Y\", conditions = c(...), incl.cut = 0.8)", con)
-  writeLines("sol <- minimize(tt, include = \"?\", dir.exp = c(1, 1, ...))", con)
-  writeLines("print(sol)  # Compare with ThSQCA output above", con)
+  writeLines(verification_snippet(result$params), con)
   writeLines("```\n", con)
   writeLines("Ensure that solution expressions, consistency, and coverage values match before publishing.", con)
   writeLines("\n", con)

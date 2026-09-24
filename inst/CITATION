@@ -1,10 +1,22 @@
-bibentry(
-  bibtype  = "Manual",
-  title    = "ThSQCA: Threshold-Sweep QCA",
-  author   = "Yuki Toyoda",
-  year     = "2026",
-  note     = paste("R package version", meta$Version),
-  url      = "https://CRAN.R-project.org/package=ThSQCA",
-  doi      = "10.5281/zenodo.17899390",
-  header   = "To cite ThSQCA in publications use:"
+c(
+  bibentry(
+    bibtype  = "Manual",
+    title    = "ThSQCA: Threshold-Sweep QCA",
+    author   = "Yuki Toyoda",
+    year     = "2026",
+    note     = paste("R package version", meta$Version),
+    url      = "https://CRAN.R-project.org/package=ThSQCA",
+    doi      = "10.5281/zenodo.17899390",
+    header   = "To cite the ThSQCA package in publications use:"
+  ),
+  bibentry(
+    bibtype   = "Misc",
+    title     = "ThSQCA: Reproducible Threshold-Sweep Workflows for QCA in R",
+    author    = "Yuki Toyoda",
+    year      = "2026",
+    publisher = "SocArXiv",
+    note      = "Preprint",
+    doi       = "10.31235/osf.io/yb8xs_v1",
+    header    = "To cite the accompanying preprint describing the workflow:"
+  )
 )

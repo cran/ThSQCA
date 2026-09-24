@@ -79,7 +79,7 @@ test_that("print.otSweep_result works without error", {
     thrX = thrX
   )
   
-  expect_output(print(result), "OTS-QCA")
+  expect_output(print(result), "OTS \\(Outcome Threshold Sweep\\)")
 })
 
 test_that("summary.otSweep_result works without error", {

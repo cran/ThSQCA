@@ -1,4 +1,80 @@
-# ThSQCA 2.0.6 (unreleased)
+# ThSQCA 2.0.7
+
+## Documentation
+
+* `citation("ThSQCA")` now also lists the accompanying preprint (Toyoda, 2026,
+  SocArXiv, <doi:10.31235/osf.io/yb8xs_v1>), which is also added to the README
+  and to the reference list of the tutorial vignette.
+* Help page titles now use the ThS-QCA labels ("OTS", "CTS (single)",
+  "CTS (multiple)", "DTS") instead of "OTS-QCA", "CTS-QCA", "MCTS-QCA" and
+  "DTS-QCA", and the package overview page describes results in terms of
+  sufficiency structures and threshold transitions rather than causal
+  structures.
+* `ThSQCA_Tutorial_EN` was reorganized and extended: a quick start, data
+  preparation (binary variables, `pre_calibrated`, sweeping membership scores),
+  a section on choosing between complex, parsimonious and intermediate
+  solutions and one on multiple minimal solutions (both with a second simulated
+  data set that has logical remainders), guidance on reporting, and answers to
+  common questions. Version-history headings were removed.
+* Unified terminology with the companion methodology paper: the framework is
+  now called Threshold-Sweep QCA (ThS-QCA), and the sweeps are referred to as
+  CTS (`ctSweepS()` for one condition, `ctSweepM()` for several conditions),
+  OTS (`otSweep()`), and DTS (`dtSweep()`). The former labels "TS-QCA" and
+  "MCTS-QCA" were removed from the README and the vignettes. No function names,
+  arguments, or results changed.
+* README: added links to the two browser-based helpers (Sweep Builder and QCA
+  Quickstart) and to the tutorial vignettes, added `install.packages("ThSQCA")`
+  as the primary installation route, and made the "Basic Setup" example use the
+  bundled `sample_data` so that it runs as written. Fixed two bullet lists that
+  were rendered as running text on CRAN.
+* Vignettes: example output files in `ThSQCA_Reproducible_EN` are now named
+  `ThSQCA_*` instead of `TSQCA_*`; `TSQCA_MCTS_results.csv` became
+  `ThSQCA_CTS_multi_results.csv`. Added a pointer to Sweep Builder in
+  `ThSQCA_Tutorial_EN`.
+
+## Bug fixes and output changes
+
+* Sweeps no longer print one stray blank line for every "No solution" cell.
+  The calls to `QCA::truthTable()` and `QCA::minimize()` inside the sweep
+  loops now go through an internal helper, `quiet_try()`, which behaves like
+  `try(..., silent = TRUE)` but also discards console output written by the
+  QCA call itself. Warnings are passed on unchanged (they are collected while
+  the output is diverted and signalled again afterwards). Results are unchanged.
+* A `pre_calibrated` variable that contains memberships of exactly 0.5 now
+  produces one warning per sweep, naming the variable and the number of cases.
+  Previously QCA's own warning ("Fuzzy causal conditions should not have values
+  of 0.5 in the data") was repeated for every cell of the sweep (twice per cell)
+  without saying which variable was affected; that per-cell warning is no longer
+  repeated.
+* Printed and summarised results now use the ThS-QCA labels (OTS, DTS,
+  CTS (single), CTS (multiple)) instead of "OTS-QCA", "DTS-QCA", "CTS-QCA" and
+  "MCTS-QCA". The S3 class names (`otSweep_result`, `tsqca_result`, and so on)
+  are unchanged, so existing code that dispatches on them keeps working.
+* The Necessity Analysis table in full reports no longer shows a leading space
+  in some condition names (for example `" ~TRU"`).
+* The verification code at the end of a report now reproduces the solution
+  type that was actually used (`minimize(tt)`, `minimize(tt, include = "?")` or
+  `minimize(tt, include = "?", dir.exp = c(...))` with your values) instead of
+  a placeholder.
+* `generate_report()` now shows the outcome name you supplied (for example
+  `LOY`, or `~LOY` for a negated outcome) in solution formulas, in the
+  captured QCA console output, and in the "Solutions Overview" headings, where
+  it previously showed the internal column name `Y`. The verification snippet at
+  the end of each report now names your outcome and conditions and uses your
+  `incl.cut`. Internally the outcome column is still called `Y`.
+* The documentation no longer recommends sweeping variables only on their raw
+  scale. Membership scores can be swept like any other numeric variable (leave
+  them out of `pre_calibrated` and give thresholds on the 0 to 1 scale); the
+  tutorial has a new subsection on this. The warning for a variable that is
+  both in `pre_calibrated` and in a sweep list now says how to sweep it
+  (remove it from `pre_calibrated`) and no longer points to a vignette section
+  that does not exist. The rule itself is unchanged: a `pre_calibrated`
+  variable is used as it is and its sweep thresholds are ignored.
+* The warning issued when a sweep finds more than one equivalent solution now
+  reads "Multiple equivalent solutions exist ..." (it used to say "intermediate
+  solutions" even for complex and parsimonious runs, where it also applies).
+
+# ThSQCA 2.0.6
 
 ## Bug fixes
 

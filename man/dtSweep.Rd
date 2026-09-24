@@ -2,7 +2,7 @@
 % Please edit documentation in R/tsqca_ots_dts.R
 \name{dtSweep}
 \alias{dtSweep}
-\title{DTS–QCA: Two-dimensional X–Y threshold sweep}
+\title{DTS: Two-dimensional X-Y threshold sweep}
 \usage{
 dtSweep(
   dat,
@@ -42,9 +42,10 @@ and should be passed through to \code{QCA::truthTable()} without
 binarization. These variables must contain values in the \code{[0, 1]}
 range. Variables not listed here will be binarized using \code{sweep_list_X}
 thresholds as usual. Default is \code{NULL} (all variables binarized).
-It is recommended to sweep variables on their original (raw) scale rather
-than as pre-calibrated fuzzy values, because raw-scale thresholds are
-easier to interpret substantively.}
+Variables listed here are never swept: they are used as they are. To
+sweep a variable that holds membership scores, leave it out of this
+argument; it is then binarized at the thresholds you supply (for example
+0.3, 0.5, 0.7), like any other numeric variable.}
 
 \item{dir.exp}{Directional expectations for \code{minimize}.
 If \code{NULL} (default), no directional expectations are applied.

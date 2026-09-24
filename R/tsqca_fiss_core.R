@@ -163,7 +163,7 @@ classify_term_conditions <- function(interm_term, parsim_map, conditions) {
 #' @keywords internal
 run_parsimonious <- function(truth_table, conditions) {
   truth_table <- sanitize_truthtable(truth_table)  # QCA 3.25 guard
-  sol <- try(
+  sol <- quiet_try(
     QCA::minimize(
       truth_table,
       include    = "?",

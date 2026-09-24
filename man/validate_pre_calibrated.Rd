@@ -19,6 +19,7 @@ Invisible NULL. Raises errors or warnings as needed.
 \description{
 Checks that all names in \code{pre_calibrated} exist in \code{conditions}
 and that the corresponding values in \code{dat} are within the \code{[0, 1]}
-range required for fuzzy membership scores.
+range required for fuzzy membership scores. Values of exactly 0.5 trigger a
+single warning naming the variable and the number of cases.
 }
 \keyword{internal}

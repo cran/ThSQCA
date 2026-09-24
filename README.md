@@ -2,12 +2,12 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17899390.svg)](https://doi.org/10.5281/zenodo.17899390)
 
-ThSQCA is an R package implementing **Threshold-Sweep QCA (TS-QCA)**,  
+ThSQCA is an R package implementing **Threshold-Sweep QCA (ThS-QCA)**,  
 a framework for systematically varying the thresholds used to binarize  
 the outcome and conditions in crisp-set QCA.
 
 After calibration, QCA results may change depending on how thresholds are set.  
-TS-QCA evaluates this sensitivity by automatically:
+ThS-QCA evaluates this sensitivity by automatically:
 
 - binarizing the data using many threshold candidates  
 - generating truth tables  
@@ -16,12 +16,30 @@ TS-QCA evaluates this sensitivity by automatically:
 
 Implemented sweep types:
 
-- **CTS-QCA (ctSweepS)**: Sweep the threshold of one X  
-- **MCTS-QCA (ctSweepM)**: Sweep thresholds of multiple X conditions  
-- **OTS-QCA (otSweep)**: Sweep the threshold of Y only  
-- **DTS-QCA (dtSweep)**: Sweep X and Y thresholds simultaneously (2D sweep)
+- **Condition Threshold Sweep, CTS (`ctSweepS`)**: Sweep the threshold of one X  
+- **Condition Threshold Sweep, CTS (`ctSweepM`)**: Sweep thresholds of multiple X conditions  
+- **Outcome Threshold Sweep, OTS (`otSweep`)**: Sweep the threshold of Y only  
+- **Dual Threshold Sweep, DTS (`dtSweep`)**: Sweep X and Y thresholds simultaneously (2D sweep)
 
 > **Scope:** ThSQCA focuses on **sufficiency analysis**. Necessity analysis is planned for future versions.
+
+## Tutorials
+
+- [ThSQCA Tutorial](https://im-research-yt.github.io/ThSQCA/articles/ThSQCA_Tutorial_EN.html): a step-by-step introduction to the four sweeps.
+- [ThSQCA Reproducible Code](https://im-research-yt.github.io/ThSQCA/articles/ThSQCA_Reproducible_EN.html): copy-and-run code suited to an article appendix.
+
+Both are also installed with the package: `vignette("ThSQCA_Tutorial_EN", package = "ThSQCA")` and `vignette("ThSQCA_Reproducible_EN", package = "ThSQCA")`.
+
+## Try it in the browser
+
+Two interactive helpers generate ready-to-run R code in your browser. They do not run any analysis themselves.
+
+- [Sweep Builder](https://im-research-yt.github.io/ThSQCA/tools/sweep-builder.html): turn your QCA analysis into threshold-sweep code (`otSweep()`, `ctSweepS()`, `ctSweepM()`, `dtSweep()`).
+- [QCA Quickstart](https://im-research-yt.github.io/ThSQCA/tools/qca-quickstart.html): a basic `truthTable()` / `minimize()` script for data you have already calibrated.
+
+## Questions and feedback
+
+Bug reports, questions, and feature requests are welcome through [GitHub Issues](https://github.com/im-research-yt/ThSQCA/issues).
 
 ---
 
@@ -154,6 +172,7 @@ generate_report(result, "my_analysis_simple.md", dat = mydata, format = "simple"
 ```
 
 Reports include:
+
 - Analysis settings (for reproducibility)
 - Solution formulas with essential/selective prime implicants
 - Fit measures (consistency, coverage, PRI)
@@ -239,6 +258,10 @@ ThSQCA uses precise Boolean algebra terminology:
 ## Installation
 
 ```r
+# Released version (CRAN)
+install.packages("ThSQCA")
+
+# Development version (GitHub)
 install.packages("devtools")
 devtools::install_github("im-research-yt/ThSQCA")
 ```
@@ -284,7 +307,11 @@ result <- dtSweep(
 library(QCA)
 library(ThSQCA)
 
-dat <- read.csv("sample_data.csv", fileEncoding = "UTF-8")
+data(sample_data)   # bundled example data (Y, X1, X2, X3)
+dat <- sample_data
+
+# To use your own data instead:
+# dat <- read.csv("your_data.csv", fileEncoding = "UTF-8")
 
 outcome  <- "Y"
 conditions <- c("X1", "X2", "X3")
@@ -305,6 +332,7 @@ When your dataset contains **both continuous and binary (0/1) variables**, speci
 #### Why Threshold = 1 for Binary Variables?
 
 The `qca_bin()` function uses `x >= thr` for binarization:
+
 - If `x = 0`: `0 >= 1` → FALSE → **0** (preserved)
 - If `x = 1`: `1 >= 1` → TRUE → **1** (preserved)
 
@@ -344,7 +372,7 @@ sweep_list <- list(
 
 ## Usage Examples
 
-### 1. CTS-QCA: single-condition X sweep (ctSweepS)
+### 1. CTS: single-condition X sweep (ctSweepS)
 
 ```r
 sweep_var <- "X3"      # Condition (X) whose threshold will be varied
@@ -366,7 +394,7 @@ res_cts <- ctSweepS(
 summary(res_cts)
 ```
 
-### 2. MCTS-QCA: multi-condition X sweep (ctSweepM)
+### 2. CTS: multi-condition X sweep (ctSweepM)
 
 ```r
 # Threshold candidates for each X
@@ -387,7 +415,7 @@ res_mcts <- ctSweepM(
 summary(res_mcts)
 ```
 
-### 3. OTS-QCA: outcome Y sweep (otSweep)
+### 3. OTS: outcome Y sweep (otSweep)
 
 ```r
 thrX <- c(X1 = 7, X2 = 7, X3 = 7)  # Fixed thresholds for X
@@ -407,7 +435,7 @@ summary(res_ots)
 generate_report(res_ots, "ots_report.md", dat = dat, format = "full")
 ```
 
-### 4. DTS-QCA: 2D sweep of X and Y (dtSweep)
+### 4. DTS: 2D sweep of X and Y (dtSweep)
 
 ```r
 # X-side threshold candidates (multiple conditions)
@@ -437,6 +465,12 @@ summary(res_dts)
 data(sample_data)
 str(sample_data)
 ```
+
+## Citation
+
+To cite the package, use `citation("ThSQCA")`. The accompanying preprint describing the threshold-sweep workflow is:
+
+- Toyoda, Y. (2026). ThSQCA: Reproducible Threshold-Sweep Workflows for QCA in R. *SocArXiv*. [DOI: 10.31235/osf.io/yb8xs_v1](https://doi.org/10.31235/osf.io/yb8xs_v1)
 
 ## References
 

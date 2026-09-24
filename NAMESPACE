@@ -28,6 +28,8 @@ export(generate_solution_note)
 export(identify_epi)
 export(otSweep)
 export(print_fiss_summary)
-importFrom(QCA,minimize)
-importFrom(QCA,truthTable)
+importFrom(QCA,
+  minimize,
+  truthTable
+)
 importFrom(utils,capture.output)

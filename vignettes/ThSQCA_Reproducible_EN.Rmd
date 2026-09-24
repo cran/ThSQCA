@@ -57,7 +57,7 @@ summary(dat)
 thrY_base <- 7
 thrX_base <- 7
 
-# Fixed X thresholds (for OTS–QCA)
+# Fixed X thresholds (for OTS)
 thrX_vec <- c(
   X1 = thrX_base,
   X2 = thrX_base,
@@ -99,7 +99,7 @@ cat("Intermediate:", res_int$summary$expression, "\n")
 
 ---
 
-# 4. CTS–QCA (ctSweepS)
+# 4. CTS, single condition (ctSweepS)
 
 Sweep a **single condition X** (example: X3).
 
@@ -146,12 +146,12 @@ summary(res_cts_int)
 
 Export:
 ```{r, eval=FALSE}
-write.csv(res_cts$summary, file = "TSQCA_CTS_results.csv", row.names = FALSE)
+write.csv(res_cts$summary, file = "ThSQCA_CTS_results.csv", row.names = FALSE)
 ```
 
 ---
 
-# 5. MCTS–QCA (ctSweepM)
+# 5. CTS, multiple conditions (ctSweepM)
 
 Sweep **multiple X thresholds simultaneously**.
 
@@ -196,12 +196,12 @@ summary(res_mcts_int)
 
 Export:
 ```{r, eval=FALSE}
-write.csv(res_mcts$summary, file = "TSQCA_MCTS_results.csv", row.names = FALSE)
+write.csv(res_mcts$summary, file = "ThSQCA_CTS_multi_results.csv", row.names = FALSE)
 ```
 
 ---
 
-# 6. OTS–QCA (otSweep)
+# 6. OTS (otSweep)
 
 Sweep **only the outcome threshold (Y)**.
 
@@ -241,12 +241,12 @@ summary(res_ots_int)
 
 Export:
 ```{r, eval=FALSE}
-write.csv(res_ots$summary, file = "TSQCA_OTS_results.csv", row.names = FALSE)
+write.csv(res_ots$summary, file = "ThSQCA_OTS_results.csv", row.names = FALSE)
 ```
 
 ---
 
-# 7. DTS–QCA (dtSweep)
+# 7. DTS (dtSweep)
 
 Two-dimensional sweep: **X thresholds × Y thresholds**.
 
@@ -293,7 +293,7 @@ summary(res_dts_int)
 
 Export:
 ```{r, eval=FALSE}
-write.csv(res_dts$summary, file = "TSQCA_DTS_results.csv", row.names = FALSE)
+write.csv(res_dts$summary, file = "ThSQCA_DTS_results.csv", row.names = FALSE)
 ```
 
 ---
@@ -346,12 +346,12 @@ Create comprehensive markdown reports for documentation.
 
 ## Full Report
 ```{r, eval=FALSE}
-generate_report(res_ots, "TSQCA_OTS_report_full.md", dat = dat, format = "full")
+generate_report(res_ots, "ThSQCA_OTS_report_full.md", dat = dat, format = "full")
 ```
 
 ## Simple Report (for manuscripts)
 ```{r, eval=FALSE}
-generate_report(res_ots, "TSQCA_OTS_report_simple.md", dat = dat, format = "simple")
+generate_report(res_ots, "ThSQCA_OTS_report_simple.md", dat = dat, format = "simple")
 ```
 
 ---
@@ -444,7 +444,7 @@ generate_report(result, "report.md", dat = dat, chart_symbol_set = "latex")
 
 ## References
 
-For more information on TS-QCA methodology, see:
+For more information on ThS-QCA methodology, see:
 
 - Ragin, C. C. (2008). *Redesigning Social Inquiry: Fuzzy Sets and Beyond*. University of Chicago Press. DOI: [10.7208/chicago/9780226702797.001.0001](https://doi.org/10.7208/chicago/9780226702797.001.0001)
 - Duşa, A. (2019). *QCA with R: A Comprehensive Resource*. Springer. DOI: [10.1007/978-3-319-75668-4](https://doi.org/10.1007/978-3-319-75668-4)
@@ -527,7 +527,7 @@ Symbol legend:
 # Full report with Fiss four-symbol charts
 generate_report(
   res_fiss,
-  output_file       = "TSQCA_Fiss_report.md",
+  output_file       = "ThSQCA_Fiss_report.md",
   format            = "full",
   dat               = dat,
   include_fiss_core = TRUE,       # activates four-symbol charts

@@ -9,7 +9,7 @@
 #' dependency in Qualitative Comparative Analysis (QCA). Rather than relying 
 #' on a single calibration threshold, ThSQCA systematically explores how 
 #' sufficient conditions change across different threshold levels, revealing 
-#' the dynamic structure of causal configurations.
+#' the dynamic structure of sufficient configurations.
 #'
 #' @details
 #' ## Overview
@@ -29,8 +29,8 @@
 #' \itemize{
 #'   \item Executing QCA repeatedly across multiple threshold values
 #'   \item Systematically analyzing changes in obtained solutions
-#'   \item Extracting solution stability, critical points, and hierarchical 
-#'         causal structures
+#'   \item Extracting the stability of solutions and the threshold transitions 
+#'         where the sufficiency structure changes
 #' }
 #' 
 #' This makes ThSQCA a complementary meta-analytical framework that sits 
@@ -39,22 +39,22 @@
 #' ## Four Core Methods
 #' 
 #' \describe{
-#'   \item{\strong{OTS-QCA} (Outcome Threshold Sweep)}{
+#'   \item{\strong{OTS} (Outcome Threshold Sweep)}{
 #'     Varies the outcome threshold (e.g., Y >= 6, 7, 8, 9) to identify 
 #'     how sufficient conditions change with different target levels of 
 #'     the outcome.
 #'   }
-#'   \item{\strong{CTS-QCA} (Condition Threshold Sweep)}{
+#'   \item{\strong{CTS, single} (Condition Threshold Sweep)}{
 #'     Varies a single condition's threshold (e.g., X >= 5, 6, 7, 8) to 
-#'     identify the "onset point" where the condition begins to demonstrate 
-#'     causal efficacy.
+#'     identify the point at which the condition begins to appear in the 
+#'     sufficient configurations.
 #'   }
-#'   \item{\strong{MCTS-QCA} (Multi-dimensional Condition Threshold Sweep)}{
+#'   \item{\strong{CTS, multiple} (Condition Threshold Sweep over several conditions)}{
 #'     Simultaneously explores threshold combinations across multiple 
 #'     conditions (Cartesian product space), visualizing regions of stable 
-#'     solutions and critical boundaries where causal structures shift.
+#'     solutions and the boundaries where the sufficiency structure changes.
 #'   }
-#'   \item{\strong{DTS-QCA} (Dual Threshold Sweep)}{
+#'   \item{\strong{DTS} (Dual Threshold Sweep)}{
 #'     Simultaneously varies both outcome and condition thresholds in a 
 #'     two-dimensional sweep, enabling analysis of how target outcome 
 #'     levels and condition improvement levels interact.
@@ -66,14 +66,15 @@
 #' \itemize{
 #'   \item \strong{Addresses Threshold Dependency}: Makes calibration 
 #'         uncertainty explicit rather than hidden
-#'   \item \strong{Reveals Hierarchical Causality}: Identifies how 
-#'         conditions operate at different threshold levels
-#'   \item \strong{Detects Critical Points}: Locates threshold tipping 
-#'         points where causal structures transform
+#'   \item \strong{Describes Threshold-Dependent Structure}: Shows which 
+#'         conditions appear in the sufficient configurations at different 
+#'         threshold levels
+#'   \item \strong{Detects Threshold Transitions}: Locates the thresholds 
+#'         at which the sufficiency structure changes
 #'   \item \strong{Enhances Robustness}: Tests solution stability across 
 #'         threshold ranges
-#'   \item \strong{Supports Theory Building}: Generates theoretical 
-#'         insights from threshold variation patterns
+#'   \item \strong{Supports Theory Building}: Suggests hypotheses from 
+#'         patterns of threshold variation
 #' }
 #' 
 #' ## Relationship with QCA Package
@@ -98,7 +99,7 @@
 #'   \item \strong{QCA package's role}: Truth table generation, logical 
 #'         minimization, consistency/coverage calculation
 #'   \item \strong{ThSQCA's role}: Systematic threshold exploration, 
-#'         stability analysis, critical point detection
+#'         stability analysis, threshold transition detection
 #'   \item \strong{Integration}: ThSQCA calls QCA functions internally; 
 #'         it does not reimplement core QCA algorithms
 #'   \item \strong{Compatibility}: Works seamlessly with established QCA 
@@ -112,7 +113,7 @@
 #' \describe{
 #'   \item{\strong{Complex Solution} (default)}{
 #'     \code{include = ""}, \code{dir.exp = NULL}. 
-#'     Does not use logical remainders. Most conservative interpretation.
+#'     Does not use logical remainders.
 #'   }
 #'   \item{\strong{Parsimonious Solution}}{
 #'     \code{include = "?"}, \code{dir.exp = NULL}. 
@@ -120,7 +121,7 @@
 #'   }
 #'   \item{\strong{Intermediate Solution}}{
 #'     \code{include = "?"}, \code{dir.exp = c(1, 1, ...)}. 
-#'     Uses only theory-consistent remainders. Most common in publications.
+#'     Uses only theory-consistent remainders.
 #'   }
 #' }
 #' 
@@ -129,10 +130,10 @@
 #' \enumerate{
 #'   \item Prepare data with continuous or ordinal variables
 #'   \item Define threshold sequences for conditions and/or outcomes
-#'   \item Apply appropriate sweep method (OTS/CTS/MCTS/DTS)
+#'   \item Apply appropriate sweep method (OTS/CTS/DTS)
 #'   \item Analyze threshold-dependent solution changes
-#'   \item Visualize stability regions and critical transitions
-#'   \item Interpret hierarchical causal structures
+#'   \item Visualize stability regions and threshold transitions
+#'   \item Interpret the sufficiency structures
 #' }
 #' 
 #' ## Application Domains
@@ -150,10 +151,10 @@
 #' @section Main Functions:
 #' 
 #' \describe{
-#'   \item{\code{\link{otSweep}}}{Execute OTS-QCA (Outcome Threshold Sweep)}
-#'   \item{\code{\link{ctSweepS}}}{Execute CTS-QCA (Condition Threshold Sweep)}
-#'   \item{\code{\link{ctSweepM}}}{Execute MCTS-QCA (Multi-dimensional CTS)}
-#'   \item{\code{\link{dtSweep}}}{Execute DTS-QCA (Dual Threshold Sweep)}
+#'   \item{\code{\link{otSweep}}}{Execute OTS (Outcome Threshold Sweep)}
+#'   \item{\code{\link{ctSweepS}}}{Execute CTS for a single condition (Condition Threshold Sweep)}
+#'   \item{\code{\link{ctSweepM}}}{Execute CTS for multiple conditions}
+#'   \item{\code{\link{dtSweep}}}{Execute DTS (Dual Threshold Sweep)}
 #'   \item{\code{\link{compute_fiss_core}}}{Compute Fiss (2011) core/peripheral classification}
 #'   \item{\code{\link{generate_fiss_chart}}}{Generate four-symbol Fiss configuration chart}
 #'   \item{\code{\link{print_fiss_summary}}}{Print core/peripheral summary for a threshold}
@@ -217,7 +218,7 @@
 #'   dir.exp = c(1, 1, 1)
 #' )
 #' 
-#' # Example 4: CTS-QCA with single condition threshold sweep
+#' # Example 4: CTS with single condition threshold sweep
 #' result_cts <- ctSweepS(
 #'   dat = sample_data,
 #'   outcome = "Y",

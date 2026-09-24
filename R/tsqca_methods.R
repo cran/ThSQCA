@@ -35,10 +35,10 @@ print.tsqca_result <- function(x, ...) {
   # Determine analysis type from class
   analysis_type <- class(x)[1]
   type_label <- switch(analysis_type,
-    "otSweep_result" = "OTS-QCA (Outcome Threshold Sweep)",
-    "dtSweep_result" = "DTS-QCA (Dual Threshold Sweep)",
-    "ctSweepS_result" = "CTS-QCA (Condition Threshold Sweep - Single)",
-    "ctSweepM_result" = "MCTS-QCA (Multi-Condition Threshold Sweep)",
+    "otSweep_result" = "OTS (Outcome Threshold Sweep)",
+    "dtSweep_result" = "DTS (Dual Threshold Sweep)",
+    "ctSweepS_result" = "CTS (Condition Threshold Sweep, single)",
+    "ctSweepM_result" = "CTS (Condition Threshold Sweep, multiple)",
     "ThSQCA Analysis"
   )
   
@@ -177,10 +177,10 @@ summary.tsqca_result <- function(object, ...) {
   # Determine analysis type from class
   analysis_type <- class(object)[1]
   type_label <- switch(analysis_type,
-    "otSweep_result" = "OTS-QCA",
-    "dtSweep_result" = "DTS-QCA",
-    "ctSweepS_result" = "CTS-QCA",
-    "ctSweepM_result" = "MCTS-QCA",
+    "otSweep_result" = "OTS",
+    "dtSweep_result" = "DTS",
+    "ctSweepS_result" = "CTS (single)",
+    "ctSweepM_result" = "CTS (multiple)",
     "ThSQCA"
   )
   

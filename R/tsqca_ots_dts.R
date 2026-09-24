@@ -1,9 +1,9 @@
 ###############################################
-# OTS–QCA (Y sweep) and DTS–QCA (2D sweep)
+# OTS (Y sweep) and DTS (2D sweep)
 # v0.3.0: QCA-compatible argument names + negated outcome support
 ###############################################
 
-#' OTS–QCA: Outcome threshold sweep
+#' OTS: Outcome threshold sweep
 #'
 #' Sweeps the threshold of the outcome Y while keeping the thresholds of
 #' all X conditions fixed.
@@ -22,9 +22,10 @@
 #'   binarization. These variables must contain values in the \code{[0, 1]}
 #'   range. Variables not listed here will be binarized using \code{thrX}
 #'   thresholds as usual. Default is \code{NULL} (all variables binarized).
-#'   It is recommended to sweep variables on their original (raw) scale rather
-#'   than as pre-calibrated fuzzy values, because raw-scale thresholds are
-#'   easier to interpret substantively.
+#'   Variables listed here are never swept: they are used as they are. To
+#'   sweep a variable that holds membership scores, leave it out of this
+#'   argument; it is then binarized at the thresholds you supply (for example
+#'   0.3, 0.5, 0.7), like any other numeric variable.
 #' @param dir.exp Directional expectations for \code{minimize}.
 #'   If \code{NULL} (default), no directional expectations are applied.
 #'   To compute the \strong{intermediate solution}, specify a numeric vector
@@ -239,7 +240,7 @@ otSweep <- function(dat,
     # Determine outcome string for truthTable (with ~ if negated)
     outcome_tt <- if (negate_outcome) "~Y" else "Y"
     
-    tt <- try(
+    tt <- quiet_try(
       QCA::truthTable(
         dat_bin,
         outcome    = outcome_tt,
@@ -282,7 +283,7 @@ otSweep <- function(dat,
     }
     
     tt <- sanitize_truthtable(tt)  # QCA 3.25 guard: char incl/PRI + '-' remainders
-    sol <- try(
+    sol <- quiet_try(
       QCA::minimize(
         tt,
         include    = include,
@@ -361,7 +362,7 @@ otSweep <- function(dat,
   # Issue warning for multiple solutions
   if (length(multi_sol_thresholds) > 0) {
     warning(
-      "Multiple intermediate solutions exist for thrY = ",
+      "Multiple equivalent solutions exist for thrY = ",
       paste(multi_sol_thresholds, collapse = ", "),
       " (n_solutions > 1). ",
       "Only the first solution (M1) and its fit metrics are shown. ",
@@ -397,10 +398,10 @@ otSweep <- function(dat,
 
 
 ###############################################
-# DTS–QCA (2D sweep)
+# DTS (2D sweep)
 ###############################################
 
-#' DTS–QCA: Two-dimensional X–Y threshold sweep
+#' DTS: Two-dimensional X-Y threshold sweep
 #'
 #' Sweeps thresholds for multiple X variables and the outcome Y jointly.
 #' For each combination of X thresholds and each candidate Y threshold, the
@@ -420,9 +421,10 @@ otSweep <- function(dat,
 #'   binarization. These variables must contain values in the \code{[0, 1]}
 #'   range. Variables not listed here will be binarized using \code{sweep_list_X}
 #'   thresholds as usual. Default is \code{NULL} (all variables binarized).
-#'   It is recommended to sweep variables on their original (raw) scale rather
-#'   than as pre-calibrated fuzzy values, because raw-scale thresholds are
-#'   easier to interpret substantively.
+#'   Variables listed here are never swept: they are used as they are. To
+#'   sweep a variable that holds membership scores, leave it out of this
+#'   argument; it is then binarized at the thresholds you supply (for example
+#'   0.3, 0.5, 0.7), like any other numeric variable.
 #' @param dir.exp Directional expectations for \code{minimize}.
 #'   If \code{NULL} (default), no directional expectations are applied.
 #'   To compute the \strong{intermediate solution}, specify a numeric vector
@@ -654,10 +656,8 @@ dtSweep <- function(dat,
       warning("Variable(s) ", paste(conflict, collapse = ", "),
               " are both pre_calibrated and in sweep_list_X. ",
               "Pre-calibrated values will be used; sweep thresholds ignored. ",
-              "It is recommended to sweep variables on their original (raw) scale, ",
-              "not as pre-calibrated fuzzy values, because threshold values on a ",
-              "raw scale (e.g., Likert 1-10) are easier to interpret substantively. ",
-              "See the package vignette section 'Choosing Sweep Variables' for details.",
+              "To sweep a variable at membership-score thresholds instead, ",
+              "remove it from 'pre_calibrated'.",
               call. = FALSE)
     }
   }
@@ -686,7 +686,7 @@ dtSweep <- function(dat,
       # Determine outcome string for truthTable (with ~ if negated)
       outcome_tt <- if (negate_outcome) "~Y" else "Y"
       
-      tt <- try(
+      tt <- quiet_try(
         QCA::truthTable(
           dat_bin,
           outcome    = outcome_tt,
@@ -733,7 +733,7 @@ dtSweep <- function(dat,
       }
       
       tt <- sanitize_truthtable(tt)  # QCA 3.25 guard: char incl/PRI + '-' remainders
-      sol <- try(
+      sol <- quiet_try(
         QCA::minimize(
           tt,
           include    = include,
@@ -824,7 +824,7 @@ dtSweep <- function(dat,
   if (length(multi_sol_combos) > 0) {
     n_multi <- length(multi_sol_combos)
     warning(
-      "Multiple intermediate solutions exist for ", n_multi, " combination(s) ",
+      "Multiple equivalent solutions exist for ", n_multi, " combination(s) ",
       "(n_solutions > 1). ",
       "Only the first solution (M1) and its fit metrics are shown. ",
       "Use generate_report() for full analysis.",

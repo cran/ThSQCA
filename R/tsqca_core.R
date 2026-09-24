@@ -16,6 +16,64 @@ qca_bin <- function(x, thr) {
   ifelse(x >= thr, 1L, 0L)
 }
 
+#' Quiet try() for QCA calls made inside sweep loops
+#'
+#' Evaluates \code{expr} like \code{try(expr, silent = TRUE)}, but also
+#' discards anything the wrapped call writes to the console (standard output
+#' and messages). Some \pkg{QCA} versions emit stray blank lines when
+#' \code{truthTable()} or \code{minimize()} fails (for example, when a
+#' threshold leaves no positive cases). Inside a sweep this would print one
+#' blank line per "No solution" cell, so it is suppressed here.
+#'
+#' Errors are returned as a \code{"try-error"} object. Warnings are not
+#' lost: they are collected while the output is diverted and then signalled
+#' again once the diversion has been closed, so that user-level warning
+#' handlers, \code{options(warn = 1)} and the usual end-of-call "Warning
+#' message" display all see them.
+#'
+#' The one exception is \pkg{QCA}'s per-cell warning "Fuzzy causal conditions
+#' should not have values of 0.5 in the data". A sweep would repeat it for
+#' every cell (twice per cell), so it is dropped here (\code{drop_pattern})
+#' and reported once, with the variable name and case count, by
+#' \code{validate_pre_calibrated()} before the sweep starts.
+#'
+#' @param expr Expression to evaluate.
+#' @param silent Passed to \code{try()}. Defaults to \code{TRUE}.
+#' @param drop_pattern Regular expression. Warnings whose message matches it
+#'   are not re-signalled. \code{NULL} keeps all warnings.
+#'
+#' @return The value of \code{expr}, or an object of class \code{"try-error"}.
+#' @keywords internal
+#' @noRd
+quiet_try <- function(expr, silent = TRUE,
+                      drop_pattern = "should not have values of 0.5") {
+  warns <- list()
+  sink_open <- TRUE
+  sink(nullfile())
+  close_sink <- function() {
+    if (sink_open) {
+      sink()
+      sink_open <<- FALSE
+    }
+  }
+  on.exit(close_sink(), add = TRUE)
+
+  res <- withCallingHandlers(
+    suppressMessages(try(expr, silent = silent)),
+    warning = function(w) {
+      warns[[length(warns) + 1L]] <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  close_sink()
+  for (w in warns) {
+    if (!is.null(drop_pattern) && grepl(drop_pattern, conditionMessage(w))) next
+    warning(w)
+  }
+  res
+}
+
 #' Prepare analysis data frame for QCA::truthTable()
 #'
 #' Constructs the data frame to be passed to \code{QCA::truthTable()}.
@@ -37,7 +95,7 @@ prepare_dat_bin <- function(dat, outcome_clean, conditions,
                             thrY, thrX_vec,
                             pre_calibrated = NULL) {
 
-  # Outcome: always binarize (threshold sweeping is the core purpose of TS-QCA)
+  # Outcome: always binarize (threshold sweeping is the core purpose of ThS-QCA)
   dat_bin <- data.frame(Y = qca_bin(dat[[outcome_clean]], thrY))
 
   # Conditions: binarize or pass through
@@ -58,7 +116,8 @@ prepare_dat_bin <- function(dat, outcome_clean, conditions,
 #'
 #' Checks that all names in \code{pre_calibrated} exist in \code{conditions}
 #' and that the corresponding values in \code{dat} are within the \code{[0, 1]}
-#' range required for fuzzy membership scores.
+#' range required for fuzzy membership scores. Values of exactly 0.5 trigger a
+#' single warning naming the variable and the number of cases.
 #'
 #' @param pre_calibrated Character vector or NULL.
 #' @param conditions Character vector. Valid condition variable names.
@@ -91,6 +150,19 @@ validate_pre_calibrated <- function(pre_calibrated, conditions, dat) {
            round(rng[1], 4), ", ", round(rng[2], 4), "]. ",
            "Apply QCA::calibrate() before passing to the sweep function.",
            call. = FALSE)
+    }
+
+    # Exact 0.5 (the crossover point): QCA warns about these in every cell,
+    # so report it once here, naming the variable.
+    n_half <- sum(vals == 0.5, na.rm = TRUE)
+    if (n_half > 0) {
+      warning("pre_calibrated variable '", v, "' has ", n_half,
+              " case(s) with membership exactly 0.5. ",
+              "QCA recommends avoiding memberships of exactly 0.5 ",
+              "(the crossover point). Consider a calibration whose ",
+              "crossover does not coincide with an observed value. ",
+              "This is reported once per sweep.",
+              call. = FALSE)
     }
   }
 

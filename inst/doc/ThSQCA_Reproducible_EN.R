@@ -26,7 +26,7 @@ summary(dat)
 thrY_base <- 7
 thrX_base <- 7
 
-# Fixed X thresholds (for OTS–QCA)
+# Fixed X thresholds (for OTS)
 thrX_vec <- c(
   X1 = thrX_base,
   X2 = thrX_base,
@@ -94,7 +94,7 @@ summary(res_cts_int)
 })
 
 ## ----eval=FALSE---------------------------------------------------------------
-# write.csv(res_cts$summary, file = "TSQCA_CTS_results.csv", row.names = FALSE)
+# write.csv(res_cts$summary, file = "ThSQCA_CTS_results.csv", row.names = FALSE)
 
 ## ----error=TRUE---------------------------------------------------------------
 try({
@@ -136,7 +136,7 @@ summary(res_mcts_int)
 })
 
 ## ----eval=FALSE---------------------------------------------------------------
-# write.csv(res_mcts$summary, file = "TSQCA_MCTS_results.csv", row.names = FALSE)
+# write.csv(res_mcts$summary, file = "ThSQCA_CTS_multi_results.csv", row.names = FALSE)
 
 ## -----------------------------------------------------------------------------
 sweep_range_ots <- 6:8
@@ -169,7 +169,7 @@ res_ots_int <- otSweep(
 summary(res_ots_int)
 
 ## ----eval=FALSE---------------------------------------------------------------
-# write.csv(res_ots$summary, file = "TSQCA_OTS_results.csv", row.names = FALSE)
+# write.csv(res_ots$summary, file = "ThSQCA_OTS_results.csv", row.names = FALSE)
 
 ## -----------------------------------------------------------------------------
 sweep_list_dts_X <- list(
@@ -209,7 +209,7 @@ res_dts_int <- dtSweep(
 summary(res_dts_int)
 
 ## ----eval=FALSE---------------------------------------------------------------
-# write.csv(res_dts$summary, file = "TSQCA_DTS_results.csv", row.names = FALSE)
+# write.csv(res_dts$summary, file = "ThSQCA_DTS_results.csv", row.names = FALSE)
 
 ## ----eval=FALSE---------------------------------------------------------------
 # res_all <- otSweep(
@@ -244,10 +244,10 @@ summary(res_dts_int)
 # head(res_essential$summary)
 
 ## ----eval=FALSE---------------------------------------------------------------
-# generate_report(res_ots, "TSQCA_OTS_report_full.md", dat = dat, format = "full")
+# generate_report(res_ots, "ThSQCA_OTS_report_full.md", dat = dat, format = "full")
 
 ## ----eval=FALSE---------------------------------------------------------------
-# generate_report(res_ots, "TSQCA_OTS_report_simple.md", dat = dat, format = "simple")
+# generate_report(res_ots, "ThSQCA_OTS_report_simple.md", dat = dat, format = "simple")
 
 ## ----eval=FALSE---------------------------------------------------------------
 # # Standard: conditions for Y >= threshold (intermediate solution)
@@ -345,7 +345,7 @@ cat(chart)
 # # Full report with Fiss four-symbol charts
 # generate_report(
 #   res_fiss,
-#   output_file       = "TSQCA_Fiss_report.md",
+#   output_file       = "ThSQCA_Fiss_report.md",
 #   format            = "full",
 #   dat               = dat,
 #   include_fiss_core = TRUE,       # activates four-symbol charts
