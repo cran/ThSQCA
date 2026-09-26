@@ -34,8 +34,8 @@
 #' @param include_fiss_core Logical. If TRUE and \code{result$fiss_core} exists
 #'   (i.e., \code{\link{compute_fiss_core}} has been run), the configuration
 #'   charts use full Fiss (2011) four-symbol notation distinguishing core
-#'   (present in both parsimonious and intermediate solutions) from peripheral
-#'   conditions (intermediate only). If FALSE (default) or if \code{fiss_core}
+#'   (conditions of the parsimonious term contained in each configuration)
+#'   from peripheral conditions (intermediate only). If FALSE (default) or if \code{fiss_core}
 #'   data is absent, the standard two-symbol chart is used.
 #' @param include_raw_output Logical. If TRUE (default), includes the raw QCA
 #'   package output (print(sol)) for each threshold for verification purposes.
@@ -575,8 +575,8 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
           fc <- result$fiss_core[[thr_key]]
           if (!is.null(fc$classification)) {
             writeLines(paste0(
-              "*Fiss (2011) notation: core conditions (appear in both parsimonious ",
-              "and intermediate solutions) are shown with large symbols; ",
+              "*Fiss (2011) notation: core conditions (conditions of a parsimonious ",
+              "term contained in the configuration) are shown with large symbols; ",
               "peripheral conditions (intermediate only) with small symbols.*\n"
             ), con)
             writeLines(paste0(
@@ -589,7 +589,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
             conditions <- result$params$conditions
             interm_terms <- unique(fc$classification$term_expr)
             symbols_fiss <- SYMBOL_SETS_FISS[[chart_symbol_set]]
-            thr_label <- paste0("thrY=", thr_key)
+            thr_label <- fiss_threshold_label(result, thr_key)
             
             mat <- build_fiss_matrix(
               interm_terms   = interm_terms,
@@ -771,7 +771,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
         # --- Fiss 4-symbol cross-threshold chart ---
         writeLines(paste0(
           "*Fiss (2011) four-symbol notation. ",
-          "Large symbols (\u25CF/\u2297) = core conditions (parsimonious + intermediate). ",
+          "Large symbols (\u25CF/\u2297) = core conditions (from the parsimonious term contained in the configuration). ",
           "Small symbols (\u2299/\u2298) = peripheral conditions (intermediate only). ",
           "Blank = don't care.*\n\n"
         ), con)
@@ -825,8 +825,8 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
   if (use_fiss) {
     writeLines("", con)
     writeLines("**Fiss (2011) Core/Peripheral Classification:**", con)
-    writeLines("- **Core condition** (\u25CF/\u2297): Appears in BOTH the parsimonious and intermediate solutions.", con)
-    writeLines("- **Peripheral condition** (\u2299/\u2298): Appears in the intermediate solution ONLY.", con)
+    writeLines("- **Core condition** (\u25CF/\u2297): Belongs to a parsimonious term contained in the configuration (Fiss, 2011).", con)
+    writeLines("- **Peripheral condition** (\u2299/\u2298): Any other condition of the configuration; it appears in the intermediate solution only.", con)
     writeLines("- Reference: Fiss, P. C. (2011). Building better causal theories: A fuzzy set approach to typologies in organization research. *Academy of Management Journal*, 54(2), 393-420.", con)
   }
   
@@ -943,7 +943,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
             conditions <- result$params$conditions
             interm_terms <- unique(fc$classification$term_expr)
             symbols_fiss <- SYMBOL_SETS_FISS[[chart_symbol_set]]
-            thr_label <- paste0("thrY=", thr_key)
+            thr_label <- fiss_threshold_label(result, thr_key)
             mat <- build_fiss_matrix(
               interm_terms   = interm_terms,
               classification = fc$classification,

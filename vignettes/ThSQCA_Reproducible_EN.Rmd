@@ -484,19 +484,27 @@ print_fiss_summary(res_fiss, thr_key = "7")
 print_fiss_summary(res_fiss, thr_key = "7", language = "ja")
 ```
 
-Example output:
+Output (ThSQCA 2.0.8, QCA 3.25):
 
 ```
 === Fiss Core/Peripheral Classification (thrY = 7) ===
-Parsimonious : X1*X2
+Parsimonious : X3 + X1*X2
 Intermediate : X3 + X1*X2
 
-[Term M1] X3
-  Periph. present : X3
+[Term T1]  X3
+  Core present    :  X3
 
-[Term M2] X1*X2
-  Core present    : X1, X2
+[Term T2]  X1*X2
+  Core present    :  X1, X2
 ```
+
+Here the parsimonious and intermediate solutions coincide, so every condition
+is core. In general, each term of the intermediate solution is compared with
+the parsimonious term(s) contained in it: their conditions are core and the
+other conditions of the term are peripheral, as in the solution tables of
+Fiss (2011). See the section "Relation to Fiss (2011)" in
+`?compute_fiss_core` for tied parsimonious solutions and other details.
+`compute_fiss_core()` accepts results of `otSweep()` and `ctSweepS()`.
 
 ## 12.3 Generate Four-Symbol Chart
 
@@ -556,8 +564,9 @@ res_fiss$fiss_core[["7"]]$interm_expression
 
 ## 12.6 Note on Computational Cost
 
-`compute_fiss_core()` runs `QCA::minimize()` once per threshold (to obtain
-the parsimonious solution). The total computation time is therefore
+`compute_fiss_core()` runs `QCA::minimize()` once per threshold (to count
+the tied parsimonious solutions, and as a fallback when the stored solution
+does not record its derivation). The total computation time is therefore
 approximately double that of the original sweep. For large sweeps
 (many thresholds or conditions), this is worth keeping in mind.
 

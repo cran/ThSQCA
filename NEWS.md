@@ -1,3 +1,79 @@
+# ThSQCA 2.0.8
+
+This release corrects `compute_fiss_core()`. Core/peripheral classifications
+obtained with earlier versions should be recomputed; see the first item.
+
+## Changes in results
+
+* `compute_fiss_core()` now classifies core and peripheral conditions
+  configuration by configuration, as in the solution tables of Fiss (2011):
+  the core conditions of a term of the intermediate solution are the
+  conditions of the parsimonious term(s) contained in it, and its other
+  conditions are peripheral. Up to 2.0.7 a condition was core whenever it
+  appeared, with the same status, in any term of the parsimonious solution.
+  That rule does not reproduce Fiss's tables, where the same condition can be
+  core in one configuration and peripheral in another. When the parsimonious
+  solution is unique, the change can only turn core conditions into
+  peripheral ones; in a simulation with random crisp-set data, about 3% of
+  such data sets had at least one condition reclassified. The help page has a
+  new section, "Relation to Fiss (2011)".
+
+* `compute_fiss_core()` now follows how `QCA::minimize()` derived the
+  intermediate solution. With `dir.exp`, QCA stores one entry in `sol$i.sol`
+  for each pair of a complex and a parsimonious minimal solution (`C1P1`,
+  `C1P2`, ...), holding the parsimonious model in `$p.sol` and the
+  intermediate model(s) obtained from it in `$solution`. Up to 2.0.7 this
+  record was not used, which caused two errors when the parsimonious solution
+  had tied minimal solutions:
+  * The terms of all intermediate models were pooled, so the Fiss chart and
+    `print_fiss_summary()` could show terms that are not part of the reported
+    solution (M1). Only M1 is now classified, matching the sweep summary.
+  * M1 was compared with every tied parsimonious solution, including ones it
+    was not obtained from. M1 is now compared only with its source
+    solution(s).
+
+  Because M1 is no longer compared with tied solutions it was not obtained
+  from, conditions can also change from peripheral to core in this case.
+  When QCA derives the same M1 from several tied parsimonious solutions, a
+  condition is core only if it is core relative to each of them (the polarity
+  safeguard introduced in 2.0.5), and the warning names the source solutions.
+  When a term of the intermediate solution contains no parsimonious term, its
+  conditions are classified as peripheral and a warning is given.
+
+## Bug fixes
+
+* `compute_fiss_core()` returned an empty result without any message for
+  results of `ctSweepM()` and `dtSweep()`. It now stops with an error saying
+  that only `otSweep()` and `ctSweepS()` results are supported.
+* Condition names containing a dot (such as `high.trust`, as produced by
+  `read.csv()`) were matched incorrectly in configuration charts and in
+  `compute_fiss_core()`: the dot matched any character, so `A.B` was found in
+  the term `A*B`, and a condition `A` was found in `A.B`. Names are now
+  matched literally.
+* For `ctSweepS()` results, Fiss charts, `print_fiss_summary()` and the Fiss
+  charts in `generate_report()` labeled the swept condition threshold as
+  `thrY`. They now show the swept condition (for example `X3=6`).
+
+## Output changes
+
+* `compute_fiss_core()`: `parsim_expression` shows the parsimonious
+  solution(s) M1 was compared with, labeled with QCA's names (`"P1: ...; P2:
+  ..."`) when there are several, instead of the terms of all tied solutions
+  joined into one expression. New fields `interm_n_solutions` and
+  `parsim_sources` record the number of intermediate minimal solutions and the
+  `i.sol` entries M1 was obtained from. These fields are also present (as
+  `NA`) for thresholds without a truth table or solution.
+
+## Documentation
+
+* Descriptions of core conditions in `generate_fiss_chart()`,
+  `generate_report()` and the package description now state the
+  configuration-level rule.
+* The Fiss section of the tutorial vignette explains the configuration-level
+  rule and the handling of tied parsimonious solutions. The example output in
+  section 12 of the reproducible-code vignette now matches the actual output.
+  The README points to `compute_fiss_core()`.
+
 # ThSQCA 2.0.7
 
 ## Documentation

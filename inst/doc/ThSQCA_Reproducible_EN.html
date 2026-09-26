@@ -986,16 +986,24 @@ four-symbol configuration charts. Run sections 1–6 first to ensure
 <span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a></span>
 <span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co"># Japanese</span></span>
 <span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a><span class="fu">print_fiss_summary</span>(res_fiss, <span class="at">thr_key =</span> <span class="st">&quot;7&quot;</span>, <span class="at">language =</span> <span class="st">&quot;ja&quot;</span>)</span></code></pre></div>
-<p>Example output:</p>
+<p>Output (ThSQCA 2.0.8, QCA 3.25):</p>
 <pre><code>=== Fiss Core/Peripheral Classification (thrY = 7) ===
-Parsimonious : X1*X2
+Parsimonious : X3 + X1*X2
 Intermediate : X3 + X1*X2
 
-[Term M1] X3
-  Periph. present : X3
+[Term T1]  X3
+  Core present    :  X3
 
-[Term M2] X1*X2
-  Core present    : X1, X2</code></pre>
+[Term T2]  X1*X2
+  Core present    :  X1, X2</code></pre>
+<p>Here the parsimonious and intermediate solutions coincide, so every
+condition is core. In general, each term of the intermediate solution is
+compared with the parsimonious term(s) contained in it: their conditions
+are core and the other conditions of the term are peripheral, as in the
+solution tables of Fiss (2011). See the section “Relation to Fiss
+(2011)” in <code>?compute_fiss_core</code> for tied parsimonious
+solutions and other details. <code>compute_fiss_core()</code> accepts
+results of <code>otSweep()</code> and <code>ctSweepS()</code>.</p>
 </div>
 <div id="generate-four-symbol-chart" class="section level2">
 <h2>12.3 Generate Four-Symbol Chart</h2>
@@ -1083,10 +1091,11 @@ Intermediate : X3 + X1*X2
 <div id="note-on-computational-cost" class="section level2">
 <h2>12.6 Note on Computational Cost</h2>
 <p><code>compute_fiss_core()</code> runs <code>QCA::minimize()</code>
-once per threshold (to obtain the parsimonious solution). The total
-computation time is therefore approximately double that of the original
-sweep. For large sweeps (many thresholds or conditions), this is worth
-keeping in mind.</p>
+once per threshold (to count the tied parsimonious solutions, and as a
+fallback when the stored solution does not record its derivation). The
+total computation time is therefore approximately double that of the
+original sweep. For large sweeps (many thresholds or conditions), this
+is worth keeping in mind.</p>
 <hr />
 </div>
 </div>
@@ -1112,7 +1121,7 @@ keeping in mind.</p>
 <span id="cb31-18"><a href="#cb31-18" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span id="cb31-19"><a href="#cb31-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb31-20"><a href="#cb31-20" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb31-21"><a href="#cb31-21" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.7</span></span>
+<span id="cb31-21"><a href="#cb31-21" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.8</span></span>
 <span id="cb31-22"><a href="#cb31-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb31-23"><a href="#cb31-23" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span id="cb31-24"><a href="#cb31-24" tabindex="-1"></a><span class="co">#&gt;  [1] digest_0.6.39     R6_2.6.1          fastmap_1.2.0     xfun_0.60        </span></span>

@@ -1303,7 +1303,7 @@ full report (supplement).</li>
 <span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co">#&gt;                                   R                                 QCA </span></span>
 <span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a><span class="co">#&gt; &quot;R version 4.6.1 (2026-06-24 ucrt)&quot;                            &quot;3.25.5&quot; </span></span>
 <span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co">#&gt;                              ThSQCA </span></span>
-<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co">#&gt;                             &quot;2.0.7&quot;</span></span></code></pre></div>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co">#&gt;                             &quot;2.0.8&quot;</span></span></code></pre></div>
 </div>
 <div id="generating-the-report" class="section level2">
 <h2>Generating the report</h2>
@@ -1441,7 +1441,8 @@ terms, not only M1.</li>
 <div id="core-and-peripheral-conditions-fiss-2011" class="section level1">
 <h1>Core and peripheral conditions (Fiss, 2011)</h1>
 <p>Fiss (2011) refined QCA configuration tables by distinguishing two
-kinds of condition within a solution term:</p>
+kinds of condition within a configuration (a term of the intermediate
+solution):</p>
 <table>
 <colgroup>
 <col width="23%" />
@@ -1458,28 +1459,67 @@ kinds of condition within a solution term:</p>
 <tbody>
 <tr class="odd">
 <td><strong>Core condition</strong></td>
-<td>Appears in both the parsimonious and the intermediate solutions</td>
-<td>large filled symbol</td>
+<td>Also part of the parsimonious solution</td>
+<td>large symbol</td>
 </tr>
 <tr class="even">
 <td><strong>Peripheral condition</strong></td>
-<td>Appears in the intermediate solution only</td>
+<td>Eliminated in the parsimonious solution, so it appears in the
+intermediate solution only</td>
 <td>small symbol</td>
 </tr>
 </tbody>
 </table>
 <p>A condition that survives even the most aggressive simplification
-(the parsimonious solution) is more central to the configuration than
-one that appears only once theoretical expectations are applied. The
-four-symbol set is:</p>
+(the parsimonious solution) rests on stronger evidence than one that
+appears only once theoretical expectations are applied. The four-symbol
+set is:</p>
 <pre><code>● = core condition present       ⊗ = core condition absent
 ⊙ = peripheral condition present ⊘ = peripheral condition absent
 (blank) = the condition does not matter</code></pre>
+<p><strong>How ThSQCA applies the definition.</strong> In Fiss’s own
+solution tables the classification is made configuration by
+configuration: solutions are grouped by their core conditions, and the
+same condition can be core in one configuration and peripheral in
+another. <code>compute_fiss_core()</code> follows this. For each term of
+the intermediate solution it looks for the parsimonious terms contained
+in it (every condition of the parsimonious term has the same status in
+the intermediate term). The conditions of those parsimonious terms are
+core; the other conditions of the term are peripheral. With the
+parsimonious solution <code>~A*E + A*B</code>, for example, the
+intermediate term <code>~A*~B*C*E</code> contains <code>~A*E</code>, so
+<code>~A</code> and <code>E</code> are core, while <code>~B</code> and
+<code>C</code> are peripheral even though <code>B</code> appears in the
+other parsimonious term.</p>
+<p>Two situations are not covered by Fiss (2011). ThSQCA treats both
+conservatively and says so in a warning:</p>
+<ul>
+<li><strong>Tied parsimonious solutions.</strong>
+<code>QCA::minimize()</code> records which parsimonious solution each
+intermediate solution was derived from. If the reported intermediate
+solution comes from one of several tied parsimonious solutions, only
+that one is used. If it comes from several of them, a condition is core
+only when it is core relative to each. In the second data set at
+<code>RNW &gt;= 5</code>, the intermediate solution
+<code>SUP + TRU*PRC</code> is derived both from <code>TRU + SUP</code>
+and from <code>PRC + SUP</code>; <code>TRU</code> would be core relative
+to the first and <code>PRC</code> relative to the second, so both are
+reported as peripheral and only <code>SUP</code> is core.</li>
+<li><strong>No contained parsimonious term.</strong> An intermediate
+term can be covered by the parsimonious solution as a whole without
+containing any single parsimonious term. All its conditions are then
+reported as peripheral.</li>
+</ul>
+<p>If you want to report core and peripheral conditions relative to one
+particular parsimonious solution, state that choice in the text.</p>
 <p>For LaTeX output the symbols are <code>$\bullet$</code>,
 <code>$\otimes$</code>, <code>$\odot$</code> and
 <code>$\oslash$</code>.</p>
-<p><code>compute_fiss_core()</code> needs an intermediate-solution sweep
-with the logical remainders enabled and the details stored:</p>
+<p><code>compute_fiss_core()</code> works on results of
+<code>otSweep()</code> and <code>ctSweepS()</code> (results of
+<code>ctSweepM()</code> and <code>dtSweep()</code> are not supported
+yet). It needs an intermediate-solution sweep with the logical
+remainders enabled and the details stored:</p>
 <ol style="list-style-type: decimal">
 <li><code>include = &quot;?&quot;</code>,</li>
 <li><code>dir.exp</code> specified,</li>
@@ -1495,8 +1535,8 @@ with the logical remainders enabled and the details stored:</p>
 <span id="cb35-8"><a href="#cb35-8" tabindex="-1"></a>  <span class="at">dir.exp     =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb35-9"><a href="#cb35-9" tabindex="-1"></a>)</span>
 <span id="cb35-10"><a href="#cb35-10" tabindex="-1"></a></span>
-<span id="cb35-11"><a href="#cb35-11" tabindex="-1"></a><span class="co"># For every threshold, re-run QCA::minimize() without dir.exp to obtain the</span></span>
-<span id="cb35-12"><a href="#cb35-12" tabindex="-1"></a><span class="co"># parsimonious solution, and compare it with the stored intermediate one.</span></span>
+<span id="cb35-11"><a href="#cb35-11" tabindex="-1"></a><span class="co"># For every threshold, compare each term of the stored intermediate solution</span></span>
+<span id="cb35-12"><a href="#cb35-12" tabindex="-1"></a><span class="co"># with the parsimonious term(s) contained in it.</span></span>
 <span id="cb35-13"><a href="#cb35-13" tabindex="-1"></a>res_fiss <span class="ot">&lt;-</span> <span class="fu">compute_fiss_core</span>(res_i, <span class="at">conditions =</span> <span class="fu">c</span>(<span class="st">&quot;QUA&quot;</span>, <span class="st">&quot;SER&quot;</span>, <span class="st">&quot;ENV&quot;</span>))</span>
 <span id="cb35-14"><a href="#cb35-14" tabindex="-1"></a></span>
 <span id="cb35-15"><a href="#cb35-15" tabindex="-1"></a><span class="fu">print_fiss_summary</span>(res_fiss, <span class="at">thr_key =</span> <span class="st">&quot;7&quot;</span>)           <span class="co"># one threshold</span></span>
@@ -1508,7 +1548,11 @@ with the logical remainders enabled and the details stored:</p>
 <p><code>print_fiss_summary()</code> lists, term by term, which
 conditions are core and which are peripheral. When the parsimonious and
 intermediate solutions are identical, every condition is core and none
-is peripheral.</p>
+is peripheral. For the second data set at <code>RNW &gt;= 6</code>, the
+parsimonious solution is <code>TRU + ~PRC*SUP</code> and the
+intermediate solution <code>TRU*PRC + ~PRC*SUP</code>: in
+<code>TRU*PRC</code>, <code>TRU</code> is core and <code>PRC</code>
+peripheral; in <code>~PRC*SUP</code>, both conditions are core.</p>
 </div>
 <div id="practical-tips-and-frequently-asked-questions" class="section level1">
 <h1>Practical tips and frequently asked questions</h1>
@@ -1619,7 +1663,7 @@ for QCA in R. <em>SocArXiv</em>. DOI: <a href="https://doi.org/10.31235/osf.io/y
 <span id="cb36-17"><a href="#cb36-17" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span id="cb36-18"><a href="#cb36-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb36-19"><a href="#cb36-19" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb36-20"><a href="#cb36-20" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.7</span></span>
+<span id="cb36-20"><a href="#cb36-20" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.8</span></span>
 <span id="cb36-21"><a href="#cb36-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb36-22"><a href="#cb36-22" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span id="cb36-23"><a href="#cb36-23" tabindex="-1"></a><span class="co">#&gt;  [1] digest_0.6.39     R6_2.6.1          fastmap_1.2.0     xfun_0.60         cachem_1.1.0     </span></span>

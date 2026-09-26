@@ -61,8 +61,8 @@ equivalent solutions exist explaining that M1 is shown.}
 \item{include_fiss_core}{Logical. If TRUE and \code{result$fiss_core} exists
 (i.e., \code{\link{compute_fiss_core}} has been run), the configuration
 charts use full Fiss (2011) four-symbol notation distinguishing core
-(present in both parsimonious and intermediate solutions) from peripheral
-conditions (intermediate only). If FALSE (default) or if \code{fiss_core}
+(conditions of the parsimonious term contained in each configuration)
+from peripheral conditions (intermediate only). If FALSE (default) or if \code{fiss_core}
 data is absent, the standard two-symbol chart is used.}
 
 \item{include_raw_output}{Logical. If TRUE (default), includes the raw QCA

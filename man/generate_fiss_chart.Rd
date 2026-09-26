@@ -27,9 +27,9 @@ Character string: Markdown-formatted Fiss configuration chart.
 }
 \description{
 Produces a Markdown-formatted configuration chart following Fiss (2011),
-using four symbols to distinguish core conditions (present in both
-parsimonious and intermediate solutions) from peripheral conditions
-(present in intermediate solution only).
+using four symbols to distinguish core conditions (conditions of the
+parsimonious term contained in each configuration) from peripheral
+conditions (present in the intermediate solution only).
 }
 \details{
 Call \code{\link{compute_fiss_core}} first to augment the sweep result.

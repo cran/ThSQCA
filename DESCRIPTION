@@ -1,7 +1,7 @@
 Package: ThSQCA
 Type: Package
 Title: Threshold-Sweep QCA
-Version: 2.0.7
+Version: 2.0.8
 Authors@R: c(
     person("Yuki", "Toyoda", role = c("aut", "cre"),
            email = "yuki.toyoda.ds@hosei.ac.jp"),
@@ -17,9 +17,9 @@ Description: Provides threshold sweep methods for Qualitative Comparative
     threshold setting. Also provides Fiss (2011)
     <doi:10.5465/amj.2011.60263120> core/peripheral condition classification
     via compute_fiss_core() and generate_fiss_chart(), enabling four-symbol
-    configuration charts that distinguish core conditions (present in both
-    parsimonious and intermediate solutions) from peripheral conditions
-    (intermediate only). Built on top of the 'QCA' package by Dusa (2019)
+    configuration charts that distinguish core conditions (conditions of the
+    parsimonious term contained in each configuration) from peripheral
+    conditions (intermediate only). Built on top of the 'QCA' package by Dusa (2019)
     <doi:10.1007/978-3-319-75668-4>, with function arguments following 'QCA'
     conventions. Based on set-theoretic methods by Ragin (2008)
     <doi:10.7208/chicago/9780226702797.001.0001> and established robustness
@@ -33,16 +33,16 @@ License: MIT + file LICENSE
 URL: https://github.com/im-research-yt/ThSQCA,
         https://doi.org/10.5281/zenodo.17899390
 BugReports: https://github.com/im-research-yt/ThSQCA/issues
-Date: 2026-09-24
+Date: 2026-09-25
 Encoding: UTF-8
 LazyData: true
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
 NeedsCompilation: no
-Packaged: 2026-09-24 14:42:51 UTC; yukit
+Packaged: 2026-09-26 10:25:04 UTC; yukit
 Author: Yuki Toyoda [aut, cre],
   Japan Society for the Promotion of Science [fnd] (KAKENHI Grant Number
     JP20K01998)
 Maintainer: Yuki Toyoda <yuki.toyoda.ds@hosei.ac.jp>
 Repository: CRAN
-Date/Publication: 2026-09-24 15:10:02 UTC
+Date/Publication: 2026-09-26 13:30:09 UTC

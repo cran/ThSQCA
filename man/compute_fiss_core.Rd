@@ -7,8 +7,8 @@
 compute_fiss_core(result, conditions = NULL)
 }
 \arguments{
-\item{result}{A sweep result object with \code{$details} and
-\code{$settings} slots (e.g., from \code{otSweep(..., return_details = TRUE)}).}
+\item{result}{A result of \code{otSweep()} or \code{ctSweepS()} run with
+\code{include = "?"}, \code{dir.exp} and \code{return_details = TRUE}.}
 
 \item{conditions}{Character vector. Condition names (used for consistent
 row ordering in charts). If \code{NULL}, extracted automatically.}
@@ -18,18 +18,28 @@ The original \code{result} object with an additional
   \code{$fiss_core} slot: a named list keyed by threshold (character),
   each entry containing:
   \itemize{
-    \item \code{parsim_expression} — parsimonious solution expression
-    \item \code{interm_expression} — intermediate solution expression
+    \item \code{parsim_expression} — the parsimonious solution(s) M1 was
+      compared with; several are shown with QCA's labels, e.g.
+      \code{"P1: ...; P2: ..."}
+    \item \code{interm_expression} — the intermediate solution classified
+      (M1)
+    \item \code{parsim_n_solutions} — number of tied parsimonious
+      solutions on the truth table
+    \item \code{interm_n_solutions} — number of intermediate minimal
+      solutions
+    \item \code{parsim_sources} — names of the \code{i.sol} entries M1 was
+      derived from (e.g. \code{"C1P1"}), or \code{NA} when unavailable
     \item \code{classification}    — data frame with columns
       \code{term_idx}, \code{term_expr}, \code{condition},
       \code{status}, \code{type}
   }
 }
 \description{
-Takes an existing threshold-sweep result object (produced by
-\code{\link{otSweep}}, \code{\link{ctSweepS}}, \code{\link{ctSweepM}},
-or \code{\link{dtSweep}}) and augments it with Fiss (2011)
-core/peripheral classification.
+Takes a threshold-sweep result produced by \code{\link{otSweep}} or
+\code{\link{ctSweepS}} and augments it with the Fiss (2011) core/peripheral
+classification of the intermediate solution. Results of
+\code{\link{ctSweepM}} and \code{\link{dtSweep}} are not supported yet and
+give an error.
 }
 \details{
 The classification requires that:
@@ -38,21 +48,81 @@ The classification requires that:
         computation)
   \item \code{return_details = TRUE} was used (truth tables must be stored)
   \item \code{dir.exp} was specified (i.e., the sweep produced intermediate
-        solutions — core/peripheral is only meaningful when comparing
-        parsimonious vs intermediate)
+        solutions; core/peripheral is only meaningful when comparing
+        parsimonious and intermediate solutions)
 }
 
 For each threshold in the result, this function:
 \enumerate{
   \item Retrieves the intermediate solution already stored in
-        \code{result$details}.
-  \item Re-runs \code{QCA::minimize()} on the same truth table with
-        \code{dir.exp = NULL} to obtain the parsimonious solution.
-  \item Compares the two solutions: conditions appearing in both are
-        \strong{core}; conditions appearing only in the intermediate
-        solution are \strong{peripheral}.
+        \code{result$details}, and takes the model reported in the sweep
+        summary (M1).
+  \item Identifies the parsimonious solution(s) from which
+        \code{QCA::minimize()} derived that model. With \code{dir.exp},
+        QCA stores one entry in \code{sol$i.sol} for each pair of a
+        complex solution and a parsimonious minimal solution
+        (\code{C1P1}, \code{C1P2}, ...; see \code{print(sol)}), holding the
+        parsimonious model in \code{$p.sol} and the intermediate model(s)
+        obtained from it in \code{$solution}. Every entry that lists M1 is
+        treated as a source.
+  \item Classifies each term (configuration) of M1: the conditions of the
+        source parsimonious term(s) contained in that term are
+        \strong{core}; its other conditions are \strong{peripheral}.
 }
 }
+\section{Relation to Fiss (2011)}{
+
+Fiss (2011) defines core conditions as those that are part of both the
+parsimonious and the intermediate solution, and peripheral conditions as
+those that are eliminated in the parsimonious solution and therefore
+appear only in the intermediate solution. His solution tables apply this
+configuration by configuration: solutions are grouped by their core
+conditions, and the same condition can be core in one configuration and
+peripheral in another. This function follows that practice. A parsimonious term is contained in an intermediate
+term when every condition it specifies has the same status (present or
+absent) in the intermediate term; the core conditions of the intermediate
+term are the conditions of all parsimonious terms contained in it (one of
+the configurations in Fiss's high-performance table contains two
+parsimonious terms and has the core conditions of both).
+
+Example: with the parsimonious solution \code{~A*E + A*B}, the intermediate
+term \code{~A*~B*C*E} contains \code{~A*E}, so \code{~A} and \code{E} are
+core and \code{~B} and \code{C} are peripheral, even though \code{B}
+occurs in the other parsimonious term. Versions up to 2.0.7 compared each
+condition with the whole parsimonious solution and reported \code{~B} as
+core here, which does not match how Fiss's tables are built.
+
+Fiss (2011) does not discuss two situations, which this function handles
+conservatively and reports with a warning:
+\itemize{
+  \item \strong{Tied parsimonious solutions.} If QCA derived M1 from a
+    single parsimonious solution, that solution alone decides. If QCA
+    derived the same M1 from several tied parsimonious solutions (the
+    directional expectations do not single one out), a condition is core
+    only if it is core relative to every one of them. For example, if
+    M1 = \code{SUP + TRU*PRC} is derived both from \code{TRU + SUP} and
+    from \code{PRC + SUP}, then \code{TRU} is core relative to the first
+    and \code{PRC} relative to the second, so both are reported as
+    peripheral. Fiss grounds coreness in the strength of the evidence; a
+    condition whose status depends on which tied solution is chosen is not
+    treated as strongly supported. To report core/peripheral status
+    relative to one particular parsimonious solution, state that choice
+    explicitly.
+  \item \strong{No contained parsimonious term.} An intermediate term can
+    be covered by the parsimonious solution without containing any single
+    parsimonious term (for example \code{B*C*D*E} with the parsimonious
+    solution \code{~A*E + A*B}). Its conditions are then all classified as
+    peripheral.
+}
+
+Only M1 is classified. When the intermediate solution itself has several
+minimal models (see \code{n_solutions} in the sweep summary and
+\code{interm_n_solutions} below), the other models are not included in the
+classification or the chart. If the derivation cannot be read from the
+stored solution (no \code{$i.sol} or \code{$p.sol}), M1 is compared with
+every tied parsimonious solution.
+}
+
 \examples{
 \dontrun{
 library(ThSQCA)

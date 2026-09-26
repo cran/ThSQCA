@@ -193,6 +193,13 @@ generate_report(result, "my_report.md", dat = mydata, include_chart = FALSE)
 generate_report(result, "my_report.md", dat = mydata, chart_symbol_set = "latex")
 ```
 
+For charts that distinguish core and peripheral conditions (Fiss, 2011), run
+`compute_fiss_core()` on an `otSweep()` or `ctSweepS()` result with
+`include = "?"` and `dir.exp`, then `generate_fiss_chart()`. As in Fiss's
+solution tables, each configuration of the intermediate solution is compared
+with the parsimonious term(s) it contains. See `?compute_fiss_core` for how
+tied parsimonious solutions are handled.
+
 Standalone chart functions are also available:
 
 ```r

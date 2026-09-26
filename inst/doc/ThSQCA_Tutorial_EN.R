@@ -252,8 +252,8 @@ sol
 #   dir.exp     = c(1, 1, 1)
 # )
 # 
-# # For every threshold, re-run QCA::minimize() without dir.exp to obtain the
-# # parsimonious solution, and compare it with the stored intermediate one.
+# # For every threshold, compare each term of the stored intermediate solution
+# # with the parsimonious term(s) contained in it.
 # res_fiss <- compute_fiss_core(res_i, conditions = c("QUA", "SER", "ENV"))
 # 
 # print_fiss_summary(res_fiss, thr_key = "7")           # one threshold

@@ -45,12 +45,15 @@ get_condition_status <- function(term, condition) {
   # Remove spaces from term for consistent matching
   term <- gsub("\\s+", "", term)
   
-  # Escape special regex characters in condition name
-  cond_escaped <- gsub("([\\[\\]\\(\\)\\{\\}\\^\\$\\.\\|\\?\\+\\\\])", 
-                       "\\\\\\1", condition)
+  # Quote the condition name literally (PCRE \Q...\E). The previous
+  # bracket-expression escape had no effect, so "." in a name such as "A.B"
+  # matched any character and "A.B" was found in "A*B".
+  cond_escaped <- paste0("\\Q", condition, "\\E")
   
   # Negated condition check (~X1 or similar)
-  negated_pattern <- paste0("~", cond_escaped, "(?![A-Za-z0-9_]|$)")
+  # "." counts as part of a name (R allows names such as "high.trust"), so a
+  # condition "A" is not matched inside "A.B".
+  negated_pattern <- paste0("~", cond_escaped, "(?![A-Za-z0-9_.]|$)")
   # Also check for ~X1 at end of string
   negated_pattern_end <- paste0("~", cond_escaped, "$")
   if (grepl(negated_pattern, term, perl = TRUE) || 
@@ -59,11 +62,11 @@ get_condition_status <- function(term, condition) {
   }
   
   # Positive condition check (X1 but not ~X1)
-  # Pattern: X1 not preceded by ~ or alphanumeric, not followed by alphanumeric
-  positive_pattern <- paste0("(?<![~A-Za-z0-9_])", cond_escaped, "(?![A-Za-z0-9_])")
+  # Pattern: X1 not preceded by ~ or a name character, not followed by one
+  positive_pattern <- paste0("(?<![~A-Za-z0-9_.])", cond_escaped, "(?![A-Za-z0-9_.])")
   # Also check for condition at start of string
-  positive_pattern_start <- paste0("^", cond_escaped, "(?![A-Za-z0-9_]|$)")
-  positive_pattern_end <- paste0("(?<![~A-Za-z0-9_])", cond_escaped, "$")
+  positive_pattern_start <- paste0("^", cond_escaped, "(?![A-Za-z0-9_.]|$)")
+  positive_pattern_end <- paste0("(?<![~A-Za-z0-9_.])", cond_escaped, "$")
   
   if (grepl(positive_pattern, term, perl = TRUE) ||
       grepl(positive_pattern_start, term, perl = TRUE) ||
@@ -775,8 +778,8 @@ get_config_labels <- function(language) {
       fiss_parsim     = "\u7c21\u6f54\u89e3",
       fiss_interm     = "\u4e2d\u9593\u89e3",
       fiss_note       = paste0(
-        "\u30b3\u30a2\u6761\u4ef6\uff1a\u7c21\u6f54\u89e3\u304b\u3064\u4e2d\u9593\u89e3\u306b\u5171\u901a\u3059\u308b\u6761\u4ef6\u3002",
-        "\u5468\u8fba\u6761\u4ef6\uff1a\u4e2d\u9593\u89e3\u306e\u307f\u306b\u73fe\u308c\u308b\u6761\u4ef6\u3002",
+        "\u30b3\u30a2\u6761\u4ef6\uff1a\u305d\u306e\u69cb\u6210\u306b\u542b\u307e\u308c\u308b\u7c21\u6f54\u89e3\u306e\u9805\u306e\u6761\u4ef6\u3002",
+        "\u5468\u8fba\u6761\u4ef6\uff1a\u305d\u306e\u69cb\u6210\u306e\u3046\u3061\u3001\u305d\u308c\u4ee5\u5916\u306e\u6761\u4ef6(\u4e2d\u9593\u89e3\u306b\u306e\u307f\u73fe\u308c\u308b)\u3002",
         "Fiss (2011) \u306b\u57fa\u3065\u304f\u3002"
       )
     )
@@ -807,7 +810,7 @@ get_config_labels <- function(language) {
       fiss_parsim     = "Parsimonious solution",
       fiss_interm     = "Intermediate solution",
       fiss_note       = paste0(
-        "Core conditions appear in both the parsimonious and intermediate solutions. ",
+        "Core conditions belong to a parsimonious term contained in the configuration. ",
         "Peripheral conditions appear in the intermediate solution only. ",
         "Based on Fiss (2011)."
       )

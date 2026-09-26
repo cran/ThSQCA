@@ -1,9 +1,11 @@
 ###############################################
 # Fiss Core/Peripheral Classification for ThSQCA
 #
-# Implements Fiss (2011) core/peripheral distinction:
-#   Core condition    : appears in BOTH parsimonious AND intermediate solution
-#   Peripheral condition: appears in intermediate solution ONLY
+# Implements Fiss (2011) core/peripheral distinction, configuration by
+# configuration as in Fiss's solution tables:
+#   Core condition      : belongs to a parsimonious term contained in the
+#                         intermediate term
+#   Peripheral condition: appears in the intermediate term only
 #
 # Reference:
 #   Fiss, P. C. (2011). Building better causal theories: A fuzzy set approach
@@ -77,79 +79,88 @@ SYMBOL_SETS_FISS <- list(
 # Internal helpers
 # ============================================================
 
-#' Extract all (condition, status) pairs present in a set of solution terms
+#' Condition statuses of a single term
 #'
-#' @param terms Character vector of solution terms (e.g. c("X1*X2", "~X3"))
-#' @param conditions Character vector of all condition names
-#'
-#' @return Named list: condition name -> character vector of statuses
-#'   ("present" and/or "absent") found in any term
-#'
+#' @param term Character. A single product term (e.g. \code{"A*~B"}).
+#' @param conditions Character vector of all condition names.
+#' @return Named character vector: \code{"present"}, \code{"absent"} or
+#'   \code{"dontcare"} for each condition.
 #' @keywords internal
-extract_cond_status_map <- function(terms, conditions) {
-  map <- setNames(vector("list", length(conditions)), conditions)
-  for (cond in conditions) {
-    statuses <- character(0)
-    for (t in terms) {
-      s <- get_condition_status(t, cond)
-      if (s != "dontcare") statuses <- c(statuses, s)
-    }
-    map[[cond]] <- unique(statuses)
-  }
-  map
+term_status <- function(term, conditions) {
+  vapply(conditions, function(cond) get_condition_status(term, cond),
+         character(1), USE.NAMES = TRUE)
 }
 
 
-#' Classify each (condition, status) pair in an intermediate term as
-#' core or peripheral
+#' Core conditions of one intermediate term relative to one parsimonious model
 #'
-#' A condition is **core** when it appears with the same presence/absence
-#' status in at least one term of the parsimonious solution.
-#' A condition is **peripheral** when it appears in the intermediate term
-#' but NOT (with the same status) in any parsimonious term.
+#' Implements the configuration-level reading of Fiss (2011): the core
+#' conditions of an intermediate configuration are the conditions of the
+#' parsimonious term(s) contained in it. A parsimonious term is contained
+#' (nested) in the intermediate term when every condition it specifies has the
+#' same status (present or absent) in the intermediate term. When several
+#' parsimonious terms are contained in it, their conditions are pooled, as in
+#' solution 2 of Fiss (2011, Table 4).
 #'
-#' @param interm_term  Character. Single intermediate-solution term.
-#' @param parsim_map   Named list returned by \code{extract_cond_status_map()}
-#'   for the parsimonious solution.
-#' @param conditions   Character vector of all condition names.
-#'
-#' @return Data frame with columns:
-#'   \code{condition}, \code{status} ("present"/"absent"/"dontcare"),
-#'   \code{type} ("core"/"peripheral"/"dontcare").
-#'
+#' @param interm_term Character. A single intermediate-solution term.
+#' @param parsim_model Character vector. The terms of one parsimonious
+#'   minimal solution.
+#' @param conditions Character vector of all condition names.
+#' @return List with \code{core} (character, condition names classified as
+#'   core) and \code{nested} (logical, whether any parsimonious term is
+#'   contained in the intermediate term).
 #' @keywords internal
-classify_term_conditions <- function(interm_term, parsim_map, conditions) {
-
-  n <- length(conditions)
-  result <- data.frame(
-    condition = conditions,
-    status    = character(n),
-    type      = character(n),
-    stringsAsFactors = FALSE
-  )
-
-  for (i in seq_len(n)) {
-    cond     <- conditions[i]
-    i_status <- get_condition_status(interm_term, cond)
-
-    if (i_status == "dontcare") {
-      result$status[i] <- "dontcare"
-      result$type[i]   <- "dontcare"
-      next
-    }
-
-    result$status[i] <- i_status
-
-    # Core if parsimonious solution also contains this condition with same status
-    p_statuses <- parsim_map[[cond]]
-    result$type[i] <- if (!is.null(p_statuses) && i_status %in% p_statuses) {
-      "core"
-    } else {
-      "peripheral"
+nested_core_conditions <- function(interm_term, parsim_model, conditions) {
+  t_st <- term_status(interm_term, conditions)
+  core <- character(0)
+  nested <- FALSE
+  for (p in parsim_model) {
+    p_st <- term_status(p, conditions)
+    specified <- p_st != "dontcare"
+    if (!any(specified)) next
+    if (all(p_st[specified] == t_st[specified])) {
+      nested <- TRUE
+      core <- union(core, conditions[specified])
     }
   }
+  list(core = core, nested = nested)
+}
 
-  result
+
+#' Classify each condition of an intermediate term as core or peripheral
+#'
+#' The term is compared with each source parsimonious solution by
+#' \code{nested_core_conditions()}. When there are several source solutions
+#' (tied parsimonious solutions from which QCA derived the same intermediate
+#' solution), a condition is core only if it is core relative to every one of
+#' them. A condition whose polarity differs across the source solutions can
+#' therefore never be core (the safeguard introduced in version 2.0.5).
+#'
+#' @param interm_term Character. A single intermediate-solution term.
+#' @param source_models List of character vectors, one per source
+#'   parsimonious solution.
+#' @param conditions Character vector of all condition names.
+#' @return Data frame with columns \code{condition}, \code{status}
+#'   (\code{"present"}, \code{"absent"}, \code{"dontcare"}) and \code{type}
+#'   (\code{"core"}, \code{"peripheral"}, \code{"dontcare"}). Attribute
+#'   \code{"not_nested"}: integer indices of the source solutions that have no
+#'   term contained in \code{interm_term}.
+#' @keywords internal
+classify_term_fiss <- function(interm_term, source_models, conditions) {
+  t_st <- term_status(interm_term, conditions)
+  per_source <- lapply(source_models, nested_core_conditions,
+                       interm_term = interm_term, conditions = conditions)
+  core <- if (length(per_source) > 0) {
+    Reduce(intersect, lapply(per_source, `[[`, "core"))
+  } else {
+    character(0)
+  }
+  type <- ifelse(t_st == "dontcare", "dontcare",
+                 ifelse(conditions %in% core, "core", "peripheral"))
+  out <- data.frame(condition = conditions, status = unname(t_st),
+                    type = unname(type), stringsAsFactors = FALSE)
+  attr(out, "not_nested") <- which(!vapply(per_source, `[[`, logical(1), "nested"))
+  out
 }
 
 
@@ -250,38 +261,112 @@ extract_sol_terms_by_model <- function(sol) {
 }
 
 
-#' Build the parsimonious condition-status map used for core classification
+#' Order-independent key for a model (set of terms)
 #'
-#' A condition counts as core only for a status it holds in EVERY minimal
-#' parsimonious solution. With a single minimal solution this is identical to
-#' reading that solution directly, so ordinary results are unaffected.
+#' @param terms Character vector of solution terms.
+#' @return Single character string.
+#' @keywords internal
+model_key <- function(terms) {
+  paste(sort(unique(as.character(terms))), collapse = " | ")
+}
+
+
+#' Trace the reported intermediate model back to its parsimonious source(s)
 #'
-#' With several tied minimal solutions, pooling their terms first (the previous
-#' behavior) meant that a condition present in M1 and absent in M2 ended up with
-#' both statuses, so an intermediate term matched whichever polarity it used and
-#' the condition was classified core either way. Requiring agreement across all
-#' minimal solutions removes that bias: what cannot be asserted regardless of
-#' which minimal solution is selected is not treated as core.
+#' With \code{include = "?"} and \code{dir.exp}, \code{QCA::minimize()} stores
+#' one entry in \code{sol$i.sol} for each pair of a complex solution
+#' (\code{C1}, \code{C2}, ...) and a parsimonious minimal solution (\code{P1},
+#' \code{P2}, ...), named \code{C1P1}, \code{C1P2}, and so on. Each entry holds
+#' that parsimonious model in \code{$p.sol} and the intermediate model(s)
+#' obtained from it in \code{$solution}.
 #'
-#' @param models_terms List of character vectors, one per minimal solution
-#'   (from \code{extract_sol_terms_by_model()}).
-#' @param conditions Character vector of all condition names.
+#' This helper picks the intermediate model that ThSQCA reports as M1 (the
+#' first model of \code{i.sol$C1P1}, else of the first entry, exactly as in
+#' \code{qca_extract()}), and returns every \code{i.sol} entry whose
+#' \code{$solution} contains that same model, together with those entries'
+#' parsimonious models. The core/peripheral comparison is then made against
+#' these source models only, not against tied parsimonious solutions from
+#' which the reported intermediate model was not obtained.
 #'
-#' @return Named list mapping each condition to the statuses it holds in every
-#'   minimal solution (possibly \code{character(0)}).
+#' \code{print(sol)} groups entries whose \code{$solution} lists are
+#' identical (\code{"From C1P1, C1P2:"}). This helper instead keeps every
+#' entry that lists M1 among its models, including entries that also list
+#' other tied intermediate models. The set of sources is therefore the same as
+#' or larger than the printed grouping, which can only make the classification
+#' more conservative.
+#'
+#' @param sol A \code{QCA::minimize()} result with \code{dir.exp} specified.
+#'
+#' @return \code{NULL} when \code{sol$i.sol} is missing, empty, or lacks
+#'   \code{$p.sol} for a source entry (callers then fall back to recomputing
+#'   the parsimonious solution). Otherwise a list with
+#'   \code{interm_terms} (character), \code{sources} (character, entry names),
+#'   \code{parsim_models} (list of character vectors, deduplicated), and
+#'   \code{parsim_labels} (character, the \code{P} part of the first entry
+#'   name for each model, e.g. \code{"P2"}).
 #'
 #' @keywords internal
-build_parsim_status_map <- function(models_terms, conditions) {
-  if (length(models_terms) == 0) {
-    return(setNames(rep(list(character(0)), length(conditions)), conditions))
+trace_intermediate_sources <- function(sol) {
+  isol <- sol$i.sol
+  if (is.null(isol) || length(isol) == 0) return(NULL)
+  if (is.null(names(isol))) names(isol) <- paste0("E", seq_along(isol))
+
+  # The model ThSQCA reports as M1 (mirrors qca_extract()).
+  first_list <- isol[["C1P1"]]$solution
+  if (is.null(first_list) || length(first_list) == 0) first_list <- isol[[1]]$solution
+  if (is.null(first_list) || length(first_list) == 0) return(NULL)
+  m1 <- parse_solution_terms(paste(first_list[[1]], collapse = " + "))
+  if (length(m1) == 0) return(NULL)
+  m1_key <- model_key(m1)
+
+  sources <- character(0)
+  parsim_models <- list()
+  parsim_labels <- character(0)
+  for (nm in names(isol)) {
+    entry_models <- isol[[nm]]$solution
+    if (is.null(entry_models) || length(entry_models) == 0) next
+    keys <- vapply(entry_models, function(s) {
+      model_key(parse_solution_terms(paste(s, collapse = " + ")))
+    }, character(1))
+    if (!m1_key %in% keys) next
+
+    p <- isol[[nm]]$p.sol
+    if (is.null(p) || length(p) == 0) return(NULL)
+    p_terms <- parse_solution_terms(paste(p, collapse = " + "))
+    if (length(p_terms) == 0) return(NULL)
+    sources <- c(sources, nm)
+    parsim_models[[length(parsim_models) + 1L]] <- unique(p_terms)
+    parsim_labels <- c(parsim_labels,
+                       if (grepl("^C[0-9]+P[0-9]+$", nm)) sub("^C[0-9]+", "", nm) else nm)
   }
-  per_model <- lapply(models_terms, extract_cond_status_map, conditions = conditions)
-  map <- setNames(vector("list", length(conditions)), conditions)
-  for (cond in conditions) {
-    sets <- lapply(per_model, function(m) m[[cond]])
-    map[[cond]] <- Reduce(intersect, sets)
+  if (length(sources) == 0) return(NULL)
+
+  keep <- !duplicated(vapply(parsim_models, model_key, character(1)))
+  list(
+    interm_terms  = unique(m1),
+    sources       = sources,
+    parsim_models = parsim_models[keep],
+    parsim_labels = parsim_labels[keep]
+  )
+}
+
+
+#' Format one or more parsimonious models as a display expression
+#'
+#' @param models List of character vectors.
+#' @param labels Optional character labels, one per model (e.g. \code{"P1"}).
+#'   Defaults to \code{"P1"}, \code{"P2"}, ...
+#' @return \code{"A + B"} for one model, \code{"P1: A + B; P2: C + B"} for
+#'   several, \code{"No solution"} for none.
+#' @keywords internal
+format_models_expr <- function(models, labels = NULL) {
+  if (length(models) == 0) return("No solution")
+  exprs <- vapply(models, paste, character(1), collapse = " + ")
+  if (length(exprs) == 1L) return(exprs)
+  if (is.null(labels) || length(labels) != length(exprs)) {
+    labels <- paste0("P", seq_along(exprs))
   }
-  map
+  paste0(labels, ": ", exprs, collapse = "; ")
 }
 
 
@@ -291,10 +376,11 @@ build_parsim_status_map <- function(models_terms, conditions) {
 
 #' Compute Fiss Core/Peripheral Classification for Sweep Results
 #'
-#' Takes an existing threshold-sweep result object (produced by
-#' \code{\link{otSweep}}, \code{\link{ctSweepS}}, \code{\link{ctSweepM}},
-#' or \code{\link{dtSweep}}) and augments it with Fiss (2011)
-#' core/peripheral classification.
+#' Takes a threshold-sweep result produced by \code{\link{otSweep}} or
+#' \code{\link{ctSweepS}} and augments it with the Fiss (2011) core/peripheral
+#' classification of the intermediate solution. Results of
+#' \code{\link{ctSweepM}} and \code{\link{dtSweep}} are not supported yet and
+#' give an error.
 #'
 #' The classification requires that:
 #' \itemize{
@@ -302,23 +388,81 @@ build_parsim_status_map <- function(models_terms, conditions) {
 #'         computation)
 #'   \item \code{return_details = TRUE} was used (truth tables must be stored)
 #'   \item \code{dir.exp} was specified (i.e., the sweep produced intermediate
-#'         solutions — core/peripheral is only meaningful when comparing
-#'         parsimonious vs intermediate)
+#'         solutions; core/peripheral is only meaningful when comparing
+#'         parsimonious and intermediate solutions)
 #' }
 #'
 #' For each threshold in the result, this function:
 #' \enumerate{
 #'   \item Retrieves the intermediate solution already stored in
-#'         \code{result$details}.
-#'   \item Re-runs \code{QCA::minimize()} on the same truth table with
-#'         \code{dir.exp = NULL} to obtain the parsimonious solution.
-#'   \item Compares the two solutions: conditions appearing in both are
-#'         \strong{core}; conditions appearing only in the intermediate
-#'         solution are \strong{peripheral}.
+#'         \code{result$details}, and takes the model reported in the sweep
+#'         summary (M1).
+#'   \item Identifies the parsimonious solution(s) from which
+#'         \code{QCA::minimize()} derived that model. With \code{dir.exp},
+#'         QCA stores one entry in \code{sol$i.sol} for each pair of a
+#'         complex solution and a parsimonious minimal solution
+#'         (\code{C1P1}, \code{C1P2}, ...; see \code{print(sol)}), holding the
+#'         parsimonious model in \code{$p.sol} and the intermediate model(s)
+#'         obtained from it in \code{$solution}. Every entry that lists M1 is
+#'         treated as a source.
+#'   \item Classifies each term (configuration) of M1: the conditions of the
+#'         source parsimonious term(s) contained in that term are
+#'         \strong{core}; its other conditions are \strong{peripheral}.
 #' }
 #'
-#' @param result  A sweep result object with \code{$details} and
-#'   \code{$settings} slots (e.g., from \code{otSweep(..., return_details = TRUE)}).
+#' @section Relation to Fiss (2011):
+#' Fiss (2011) defines core conditions as those that are part of both the
+#' parsimonious and the intermediate solution, and peripheral conditions as
+#' those that are eliminated in the parsimonious solution and therefore
+#' appear only in the intermediate solution. His solution tables apply this
+#' configuration by configuration: solutions are grouped by their core
+#' conditions, and the same condition can be core in one configuration and
+#' peripheral in another. This function follows that practice. A parsimonious term is contained in an intermediate
+#' term when every condition it specifies has the same status (present or
+#' absent) in the intermediate term; the core conditions of the intermediate
+#' term are the conditions of all parsimonious terms contained in it (one of
+#' the configurations in Fiss's high-performance table contains two
+#' parsimonious terms and has the core conditions of both).
+#'
+#' Example: with the parsimonious solution \code{~A*E + A*B}, the intermediate
+#' term \code{~A*~B*C*E} contains \code{~A*E}, so \code{~A} and \code{E} are
+#' core and \code{~B} and \code{C} are peripheral, even though \code{B}
+#' occurs in the other parsimonious term. Versions up to 2.0.7 compared each
+#' condition with the whole parsimonious solution and reported \code{~B} as
+#' core here, which does not match how Fiss's tables are built.
+#'
+#' Fiss (2011) does not discuss two situations, which this function handles
+#' conservatively and reports with a warning:
+#' \itemize{
+#'   \item \strong{Tied parsimonious solutions.} If QCA derived M1 from a
+#'     single parsimonious solution, that solution alone decides. If QCA
+#'     derived the same M1 from several tied parsimonious solutions (the
+#'     directional expectations do not single one out), a condition is core
+#'     only if it is core relative to every one of them. For example, if
+#'     M1 = \code{SUP + TRU*PRC} is derived both from \code{TRU + SUP} and
+#'     from \code{PRC + SUP}, then \code{TRU} is core relative to the first
+#'     and \code{PRC} relative to the second, so both are reported as
+#'     peripheral. Fiss grounds coreness in the strength of the evidence; a
+#'     condition whose status depends on which tied solution is chosen is not
+#'     treated as strongly supported. To report core/peripheral status
+#'     relative to one particular parsimonious solution, state that choice
+#'     explicitly.
+#'   \item \strong{No contained parsimonious term.} An intermediate term can
+#'     be covered by the parsimonious solution without containing any single
+#'     parsimonious term (for example \code{B*C*D*E} with the parsimonious
+#'     solution \code{~A*E + A*B}). Its conditions are then all classified as
+#'     peripheral.
+#' }
+#'
+#' Only M1 is classified. When the intermediate solution itself has several
+#' minimal models (see \code{n_solutions} in the sweep summary and
+#' \code{interm_n_solutions} below), the other models are not included in the
+#' classification or the chart. If the derivation cannot be read from the
+#' stored solution (no \code{$i.sol} or \code{$p.sol}), M1 is compared with
+#' every tied parsimonious solution.
+#'
+#' @param result  A result of \code{otSweep()} or \code{ctSweepS()} run with
+#'   \code{include = "?"}, \code{dir.exp} and \code{return_details = TRUE}.
 #' @param conditions  Character vector. Condition names (used for consistent
 #'   row ordering in charts). If \code{NULL}, extracted automatically.
 #'
@@ -326,8 +470,17 @@ build_parsim_status_map <- function(models_terms, conditions) {
 #'   \code{$fiss_core} slot: a named list keyed by threshold (character),
 #'   each entry containing:
 #'   \itemize{
-#'     \item \code{parsim_expression} — parsimonious solution expression
-#'     \item \code{interm_expression} — intermediate solution expression
+#'     \item \code{parsim_expression} — the parsimonious solution(s) M1 was
+#'       compared with; several are shown with QCA's labels, e.g.
+#'       \code{"P1: ...; P2: ..."}
+#'     \item \code{interm_expression} — the intermediate solution classified
+#'       (M1)
+#'     \item \code{parsim_n_solutions} — number of tied parsimonious
+#'       solutions on the truth table
+#'     \item \code{interm_n_solutions} — number of intermediate minimal
+#'       solutions
+#'     \item \code{parsim_sources} — names of the \code{i.sol} entries M1 was
+#'       derived from (e.g. \code{"C1P1"}), or \code{NA} when unavailable
 #'     \item \code{classification}    — data frame with columns
 #'       \code{term_idx}, \code{term_expr}, \code{condition},
 #'       \code{status}, \code{type}
@@ -366,6 +519,21 @@ build_parsim_status_map <- function(models_terms, conditions) {
 #'
 #' @export
 compute_fiss_core <- function(result, conditions = NULL) {
+
+  # --- Guard: supported sweep types ---
+  # ctSweepM() and dtSweep() store their details without threshold names, so
+  # the per-threshold loop below would silently produce nothing.
+  if (inherits(result, c("ctSweepM_result", "dtSweep_result")) ||
+      (!is.null(result$details) && length(result$details) > 0 &&
+       is.null(names(result$details)))) {
+    stop(
+      "compute_fiss_core() currently supports results of otSweep() and ",
+      "ctSweepS() only. Results of ctSweepM() and dtSweep() are not supported ",
+      "yet; run otSweep() or ctSweepS() at the threshold setting of interest ",
+      "instead.",
+      call. = FALSE
+    )
+  }
 
   # --- Guard: details must be present ---
   if (is.null(result$details) || length(result$details) == 0) {
@@ -413,48 +581,60 @@ compute_fiss_core <- function(result, conditions = NULL) {
     # Skip if no truth table or no intermediate solution
     if (is.null(tt) || is.null(interm_sol)) {
       fiss_list[[thr_key]] <- list(
-        parsim_expression = NA_character_,
-        interm_expression = NA_character_,
-        classification    = NULL
+        parsim_expression   = NA_character_,
+        interm_expression   = NA_character_,
+        parsim_n_solutions  = NA_integer_,
+        interm_n_solutions  = NA_integer_,
+        parsim_sources      = NA_character_,
+        classification      = NULL
       )
       next
     }
 
-    # Extract intermediate solution terms
-    interm_terms <- extract_sol_terms(interm_sol)
+    # All tied parsimonious solutions on the same truth table (used for the
+    # reported count, and as the comparison set when the derivation below
+    # cannot be traced).
+    parsim_sol        <- run_parsimonious(tt, conditions)
+    all_parsim_models <- extract_sol_terms_by_model(parsim_sol)
+    n_parsim_sol      <- length(all_parsim_models)
 
-    # Build intermediate expression string
+    # Intermediate models (distinct), for the reported count.
+    interm_models <- extract_sol_terms_by_model(interm_sol)
+    n_interm_sol  <- length(interm_models)
+
+    # Trace the reported intermediate model (M1) to the parsimonious
+    # solution(s) QCA derived it from (sol$i.sol[[...]]$p.sol).
+    traced <- trace_intermediate_sources(interm_sol)
+
+    if (!is.null(traced)) {
+      interm_terms   <- traced$interm_terms
+      source_models  <- traced$parsim_models
+      source_labels  <- traced$parsim_labels
+      parsim_sources <- traced$sources
+    } else {
+      # Fallback (derivation not available): previous behavior, i.e. compare
+      # against every tied parsimonious solution.
+      interm_terms   <- if (n_interm_sol > 0) interm_models[[1]] else character(0)
+      source_models  <- all_parsim_models
+      source_labels  <- NULL
+      parsim_sources <- NA_character_
+    }
+
     interm_expr <- if (length(interm_terms) > 0) {
       paste(interm_terms, collapse = " + ")
     } else {
       "No solution"
     }
+    parsim_expr <- format_models_expr(source_models, source_labels)
 
-    # Compute parsimonious solution on same truth table
-    parsim_sol    <- run_parsimonious(tt, conditions)
-    parsim_models <- extract_sol_terms_by_model(parsim_sol)
-    parsim_terms  <- if (length(parsim_models) > 0) {
-      unique(unlist(parsim_models, use.names = FALSE))
-    } else {
-      character(0)
-    }
-    parsim_expr  <- if (length(parsim_terms) > 0) {
-      paste(parsim_terms, collapse = " + ")
-    } else {
-      "No solution"
-    }
-
-    # Build parsimonious condition-status map. A status counts only when it
-    # holds in EVERY minimal parsimonious solution, so that tied solutions
-    # cannot make a condition core under both polarities at once.
-    parsim_map <- build_parsim_status_map(parsim_models, conditions)
-
-    n_parsim_sol <- length(parsim_models)
-    if (n_parsim_sol > 1L) {
+    n_source <- length(source_models)
+    if (n_source > 1L) {
       warning(
-        "The parsimonious solution for ", thr_key, " has ", n_parsim_sol,
-        " tied minimal solutions. A condition is treated as core only where ",
-        "all of them agree, so some conditions may be reported as peripheral.",
+        "For ", thr_key, ", the intermediate solution is derived from ",
+        n_source, " tied parsimonious solutions",
+        if (!all(is.na(parsim_sources))) paste0(" (", paste(parsim_sources, collapse = ", "), ")"),
+        ". A condition is classified as core only where all of them agree, ",
+        "so some conditions may be reported as peripheral.",
         call. = FALSE
       )
     }
@@ -465,21 +645,38 @@ compute_fiss_core <- function(result, conditions = NULL) {
         parsim_expression   = parsim_expr,
         interm_expression   = interm_expr,
         parsim_n_solutions  = n_parsim_sol,
+        interm_n_solutions  = n_interm_sol,
+        parsim_sources      = parsim_sources,
         classification      = NULL
       )
       next
     }
 
+    # Configuration-level classification (Fiss, 2011): each term is compared
+    # with the parsimonious term(s) contained in it, for every source solution.
+    term_classes <- lapply(interm_terms, classify_term_fiss,
+                           source_models = source_models,
+                           conditions    = conditions)
+    not_nested_terms <- interm_terms[vapply(term_classes, function(x) {
+      length(attr(x, "not_nested")) > 0
+    }, logical(1))]
     classif_rows <- lapply(seq_along(interm_terms), function(j) {
-      row_df <- classify_term_conditions(
-        interm_term = interm_terms[j],
-        parsim_map  = parsim_map,
-        conditions  = conditions
-      )
+      row_df <- term_classes[[j]]
       row_df$term_idx  <- j
       row_df$term_expr <- interm_terms[j]
       row_df[, c("term_idx", "term_expr", "condition", "status", "type")]
     })
+
+    if (length(not_nested_terms) > 0) {
+      warning(
+        "For ", thr_key, ", the intermediate term(s) ",
+        paste(not_nested_terms, collapse = ", "),
+        " contain no term of ",
+        if (n_source > 1L) "at least one source parsimonious solution" else "the parsimonious solution",
+        ", so their conditions are classified as peripheral.",
+        call. = FALSE
+      )
+    }
 
     classif_df <- do.call(rbind, classif_rows)
     rownames(classif_df) <- NULL
@@ -488,6 +685,8 @@ compute_fiss_core <- function(result, conditions = NULL) {
       parsim_expression   = parsim_expr,
       interm_expression   = interm_expr,
       parsim_n_solutions  = n_parsim_sol,
+      interm_n_solutions  = n_interm_sol,
+      parsim_sources      = parsim_sources,
       classification      = classif_df
     )
   }
@@ -561,12 +760,30 @@ build_fiss_matrix <- function(interm_terms, classification,
 }
 
 
+#' Label for one threshold setting in Fiss charts and summaries
+#'
+#' @param result Sweep result augmented by \code{compute_fiss_core()}.
+#' @param thr_key Character. Threshold key (a name of \code{result$fiss_core}).
+#' @param sep Character placed between the variable name and the value.
+#' @return \code{"X3=6"} for a \code{ctSweepS()} result sweeping \code{X3},
+#'   otherwise \code{"thrY=6"}.
+#' @keywords internal
+fiss_threshold_label <- function(result, thr_key, sep = "=") {
+  sweep_var <- result$params$sweep_var
+  if (inherits(result, "ctSweepS_result") && length(sweep_var) == 1L) {
+    paste0(sweep_var, sep, thr_key)
+  } else {
+    paste0("thrY", sep, thr_key)
+  }
+}
+
+
 #' Generate Fiss-Style Configuration Chart from Sweep Results
 #'
 #' Produces a Markdown-formatted configuration chart following Fiss (2011),
-#' using four symbols to distinguish core conditions (present in both
-#' parsimonious and intermediate solutions) from peripheral conditions
-#' (present in intermediate solution only).
+#' using four symbols to distinguish core conditions (conditions of the
+#' parsimonious term contained in each configuration) from peripheral
+#' conditions (present in the intermediate solution only).
 #'
 #' Call \code{\link{compute_fiss_core}} first to augment the sweep result.
 #'
@@ -644,7 +861,7 @@ generate_fiss_chart <- function(result,
     interm_terms <- unique(fc$classification$term_expr)
     if (length(interm_terms) == 0) next
 
-    thr_label <- paste0("thrY=", thr_key)
+    thr_label <- fiss_threshold_label(result, thr_key)
 
     mat <- build_fiss_matrix(
       interm_terms   = interm_terms,
@@ -725,11 +942,11 @@ print_fiss_summary <- function(result, thr_key = NULL, language = c("en", "ja"))
   fc <- result$fiss_core[[thr_key]]
 
   if (language == "ja") {
-    cat("=== Fiss \u30b3\u30a2/\u5468\u8fba\u5206\u985e (thrY =", thr_key, ") ===\n")
+    cat("=== Fiss \u30b3\u30a2/\u5468\u8fba\u5206\u985e (", fiss_threshold_label(result, thr_key, " = "), ") ===\n", sep = "")
     cat("\u3010\u7c21\u6f54\u89e3\u3011", fc$parsim_expression, "\n")
     cat("\u3010\u4e2d\u9593\u89e3\u3011", fc$interm_expression, "\n\n")
   } else {
-    cat("=== Fiss Core/Peripheral Classification (thrY =", thr_key, ") ===\n")
+    cat("=== Fiss Core/Peripheral Classification (", fiss_threshold_label(result, thr_key, " = "), ") ===\n", sep = "")
     cat("Parsimonious :", fc$parsim_expression, "\n")
     cat("Intermediate :", fc$interm_expression, "\n\n")
   }

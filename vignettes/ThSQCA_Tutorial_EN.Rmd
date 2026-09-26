@@ -752,16 +752,16 @@ Some habits make the wording safer:
 # Core and peripheral conditions (Fiss, 2011)
 
 Fiss (2011) refined QCA configuration tables by distinguishing two kinds of
-condition within a solution term:
+condition within a configuration (a term of the intermediate solution):
 
 | Type | Definition | Symbol |
 |------|------------|--------|
-| **Core condition** | Appears in both the parsimonious and the intermediate solutions | large filled symbol |
-| **Peripheral condition** | Appears in the intermediate solution only | small symbol |
+| **Core condition** | Also part of the parsimonious solution | large symbol |
+| **Peripheral condition** | Eliminated in the parsimonious solution, so it appears in the intermediate solution only | small symbol |
 
 A condition that survives even the most aggressive simplification (the
-parsimonious solution) is more central to the configuration than one that
-appears only once theoretical expectations are applied. The four-symbol set is:
+parsimonious solution) rests on stronger evidence than one that appears only
+once theoretical expectations are applied. The four-symbol set is:
 
 ```
 ● = core condition present       ⊗ = core condition absent
@@ -769,11 +769,44 @@ appears only once theoretical expectations are applied. The four-symbol set is:
 (blank) = the condition does not matter
 ```
 
+**How ThSQCA applies the definition.** In Fiss's own solution tables the
+classification is made configuration by configuration: solutions are grouped
+by their core conditions, and the same condition can be core in one
+configuration and peripheral in another. `compute_fiss_core()` follows this.
+For each term of the intermediate solution it looks for the parsimonious
+terms contained in it (every condition of the parsimonious term has the same
+status in the intermediate term). The conditions of those parsimonious terms
+are core; the other conditions of the term are peripheral. With the
+parsimonious solution `~A*E + A*B`, for example, the intermediate term
+`~A*~B*C*E` contains `~A*E`, so `~A` and `E` are core, while `~B` and `C`
+are peripheral even though `B` appears in the other parsimonious term.
+
+Two situations are not covered by Fiss (2011). ThSQCA treats both
+conservatively and says so in a warning:
+
+- **Tied parsimonious solutions.** `QCA::minimize()` records which
+  parsimonious solution each intermediate solution was derived from. If the
+  reported intermediate solution comes from one of several tied parsimonious
+  solutions, only that one is used. If it comes from several of them, a
+  condition is core only when it is core relative to each. In the second
+  data set at `RNW >= 5`, the intermediate solution `SUP + TRU*PRC` is
+  derived both from `TRU + SUP` and from `PRC + SUP`; `TRU` would be core
+  relative to the first and `PRC` relative to the second, so both are
+  reported as peripheral and only `SUP` is core.
+- **No contained parsimonious term.** An intermediate term can be covered
+  by the parsimonious solution as a whole without containing any single
+  parsimonious term. All its conditions are then reported as peripheral.
+
+If you want to report core and peripheral conditions relative to one
+particular parsimonious solution, state that choice in the text.
+
 For LaTeX output the symbols are `$\bullet$`, `$\otimes$`, `$\odot$` and
 `$\oslash$`.
 
-`compute_fiss_core()` needs an intermediate-solution sweep with the logical
-remainders enabled and the details stored:
+`compute_fiss_core()` works on results of `otSweep()` and `ctSweepS()`
+(results of `ctSweepM()` and `dtSweep()` are not supported yet). It needs an
+intermediate-solution sweep with the logical remainders enabled and the
+details stored:
 
 1. `include = "?"`,
 2. `dir.exp` specified,
@@ -790,8 +823,8 @@ res_i <- otSweep(
   dir.exp     = c(1, 1, 1)
 )
 
-# For every threshold, re-run QCA::minimize() without dir.exp to obtain the
-# parsimonious solution, and compare it with the stored intermediate one.
+# For every threshold, compare each term of the stored intermediate solution
+# with the parsimonious term(s) contained in it.
 res_fiss <- compute_fiss_core(res_i, conditions = c("QUA", "SER", "ENV"))
 
 print_fiss_summary(res_fiss, thr_key = "7")           # one threshold
@@ -804,7 +837,10 @@ generate_report(res_fiss, "fiss_report.md", dat = demo, format = "full",
 
 `print_fiss_summary()` lists, term by term, which conditions are core and which
 are peripheral. When the parsimonious and intermediate solutions are identical,
-every condition is core and none is peripheral.
+every condition is core and none is peripheral. For the second data set at
+`RNW >= 6`, the parsimonious solution is `TRU + ~PRC*SUP` and the intermediate
+solution `TRU*PRC + ~PRC*SUP`: in `TRU*PRC`, `TRU` is core and `PRC`
+peripheral; in `~PRC*SUP`, both conditions are core.
 
 # Practical tips and frequently asked questions
 
