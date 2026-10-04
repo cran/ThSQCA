@@ -731,36 +731,43 @@ thresholds</strong>.</p>
 <span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>  <span class="at">dir.exp        =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>),</span>
 <span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>  <span class="at">return_details =</span> <span class="cn">TRUE</span></span>
 <span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>)</span>
-<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a></span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="fu">summary</span>(res_dts)</span>
-<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt; DTS Summary</span></span>
-<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; =========== </span></span>
-<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
-<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
-<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
-<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
-<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
-<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
-<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt;  thrY combo_id             thrX  expression inclS covS n_solutions</span></span>
-<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt;     6        1 X1=6, X2=6, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt;     7        1 X1=6, X2=6, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt;     6        2 X1=7, X2=6, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt;     7        2 X1=7, X2=6, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt;     6        3 X1=6, X2=7, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt;     7        3 X1=6, X2=7, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a><span class="co">#&gt;     6        4 X1=7, X2=7, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt;     7        4 X1=7, X2=7, X3=6 No solution    NA   NA           0</span></span>
-<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt;     6        5 X1=6, X2=6, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a><span class="co">#&gt;     7        5 X1=6, X2=6, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="co">#&gt;     6        6 X1=7, X2=6, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-44"><a href="#cb14-44" tabindex="-1"></a><span class="co">#&gt;     7        6 X1=7, X2=6, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-45"><a href="#cb14-45" tabindex="-1"></a><span class="co">#&gt;     6        7 X1=6, X2=7, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-46"><a href="#cb14-46" tabindex="-1"></a><span class="co">#&gt;     7        7 X1=6, X2=7, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-47"><a href="#cb14-47" tabindex="-1"></a><span class="co">#&gt;     6        8 X1=7, X2=7, X3=7 No solution    NA   NA           0</span></span>
-<span id="cb14-48"><a href="#cb14-48" tabindex="-1"></a><span class="co">#&gt;     7        8 X1=7, X2=7, X3=7 No solution    NA   NA           0</span></span></code></pre></div>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt; Warning: 16 setting(s) are reported as &quot;No solution&quot; because QCA raised an</span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; error, not because no solution exists. First error(s): combination 1, thrY=6</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt; (minimize): Directional expectations cannot be specified without including the</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; remainders. | combination 1, thrY=7 (minimize): Directional expectations cannot</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt; be specified without including the remainders. | combination 2, thrY=6</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; (minimize): Directional expectations cannot be specified without including the</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt; remainders.</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="fu">summary</span>(res_dts)</span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt; DTS Summary</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt; =========== </span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; Analysis Parameters:</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt;   Outcome: Y </span></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt;   Conditions: X1, X2, X3 </span></span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt;   Consistency cutoff: 0.8 </span></span>
+<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt;   Frequency cutoff: 1 </span></span>
+<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt; Results by Threshold:</span></span>
+<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a><span class="co">#&gt;  thrY combo_id             thrX  expression inclS covS n_solutions</span></span>
+<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt;     6        1 X1=6, X2=6, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt;     7        1 X1=6, X2=6, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a><span class="co">#&gt;     6        2 X1=7, X2=6, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="co">#&gt;     7        2 X1=7, X2=6, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-44"><a href="#cb14-44" tabindex="-1"></a><span class="co">#&gt;     6        3 X1=6, X2=7, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-45"><a href="#cb14-45" tabindex="-1"></a><span class="co">#&gt;     7        3 X1=6, X2=7, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-46"><a href="#cb14-46" tabindex="-1"></a><span class="co">#&gt;     6        4 X1=7, X2=7, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-47"><a href="#cb14-47" tabindex="-1"></a><span class="co">#&gt;     7        4 X1=7, X2=7, X3=6 No solution    NA   NA           0</span></span>
+<span id="cb14-48"><a href="#cb14-48" tabindex="-1"></a><span class="co">#&gt;     6        5 X1=6, X2=6, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-49"><a href="#cb14-49" tabindex="-1"></a><span class="co">#&gt;     7        5 X1=6, X2=6, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-50"><a href="#cb14-50" tabindex="-1"></a><span class="co">#&gt;     6        6 X1=7, X2=6, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-51"><a href="#cb14-51" tabindex="-1"></a><span class="co">#&gt;     7        6 X1=7, X2=6, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-52"><a href="#cb14-52" tabindex="-1"></a><span class="co">#&gt;     6        7 X1=6, X2=7, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-53"><a href="#cb14-53" tabindex="-1"></a><span class="co">#&gt;     7        7 X1=6, X2=7, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-54"><a href="#cb14-54" tabindex="-1"></a><span class="co">#&gt;     6        8 X1=7, X2=7, X3=7 No solution    NA   NA           0</span></span>
+<span id="cb14-55"><a href="#cb14-55" tabindex="-1"></a><span class="co">#&gt;     7        8 X1=7, X2=7, X3=7 No solution    NA   NA           0</span></span></code></pre></div>
 </div>
 <div id="intermediate-solution-theory-driven-3" class="section level2">
 <h2>Intermediate Solution (Theory-Driven)</h2>
@@ -1104,7 +1111,7 @@ is worth keeping in mind.</p>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
 <span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="co">#&gt; R version 4.6.1 (2026-06-24 ucrt)</span></span>
 <span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="co">#&gt; Platform: x86_64-w64-mingw32/x64</span></span>
-<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 26200)</span></span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="co">#&gt; Running under: Windows 11 x64 (build 26300)</span></span>
 <span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a><span class="co">#&gt; Matrix products: default</span></span>
 <span id="cb31-7"><a href="#cb31-7" tabindex="-1"></a><span class="co">#&gt;   LAPACK version 3.12.1</span></span>
@@ -1121,7 +1128,7 @@ is worth keeping in mind.</p>
 <span id="cb31-18"><a href="#cb31-18" tabindex="-1"></a><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span id="cb31-19"><a href="#cb31-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb31-20"><a href="#cb31-20" tabindex="-1"></a><span class="co">#&gt; other attached packages:</span></span>
-<span id="cb31-21"><a href="#cb31-21" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.8</span></span>
+<span id="cb31-21"><a href="#cb31-21" tabindex="-1"></a><span class="co">#&gt; [1] QCA_3.25.5   admisc_0.41  ThSQCA_2.0.9</span></span>
 <span id="cb31-22"><a href="#cb31-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb31-23"><a href="#cb31-23" tabindex="-1"></a><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
 <span id="cb31-24"><a href="#cb31-24" tabindex="-1"></a><span class="co">#&gt;  [1] digest_0.6.39     R6_2.6.1          fastmap_1.2.0     xfun_0.60        </span></span>

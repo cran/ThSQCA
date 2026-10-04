@@ -543,3 +543,63 @@ qca_extract <- function(sol, extract_mode = c("first", "all", "essential")) {
     ))
   }
 }
+
+
+#' Warn about non-ASCII condition names
+#'
+#' \code{QCA::minimize()} can fail on condition names that contain
+#' non-ASCII characters (for example Japanese), which used to surface only as
+#' "No solution". Called once at the start of every sweep function.
+#'
+#' @param conditions Character vector of condition names.
+#' @return Invisibly, the offending names.
+#' @keywords internal
+#' @noRd
+warn_nonascii_names <- function(conditions) {
+  conditions <- enc2utf8(as.character(conditions))
+  bad <- conditions[is.na(iconv(conditions, "UTF-8", "ASCII"))]
+  if (length(bad) > 0L) {
+    warning("Condition name(s) with non-ASCII characters: ",
+            paste(bad, collapse = ", "), ". 'QCA::minimize()' can fail on ",
+            "such names, and the affected settings are then reported as ",
+            "\"No solution\". Rename the columns to ASCII names and rerun.",
+            call. = FALSE)
+  }
+  invisible(bad)
+}
+
+#' Error message of a failed QCA call
+#'
+#' @param x A \code{try-error} object.
+#' @return A single-line character string.
+#' @keywords internal
+#' @noRd
+sweep_failure_message <- function(x) {
+  cond <- attr(x, "condition")
+  msg <- if (!is.null(cond)) conditionMessage(cond) else as.character(x)
+  trimws(gsub("\\s+", " ", msg))
+}
+
+#' Warn once about settings where QCA raised an error
+#'
+#' Such settings are reported as "No solution" in the results; this makes
+#' clear that the cause is an error and not the absence of a solution.
+#'
+#' @param fails Character vector, one entry per failed setting.
+#' @return Invisibly \code{NULL}.
+#' @keywords internal
+#' @noRd
+warn_sweep_failures <- function(fails) {
+  # Errors that only mean "there is nothing to minimize" are a legitimate
+  # "No solution" (no case in the outcome set, or no configuration left after
+  # the cutoffs) and are not reported.
+  expected <- "None of the values in OUT is explained|There are no configurations"
+  fails <- fails[!grepl(expected, fails)]
+  if (length(fails) == 0L) return(invisible(NULL))
+  shown <- utils::head(fails, 3L)
+  warning(length(fails), " setting(s) are reported as \"No solution\" ",
+          "because QCA raised an error, not because no solution exists. ",
+          "First error(s): ", paste(shown, collapse = " | "),
+          call. = FALSE)
+  invisible(NULL)
+}

@@ -1,5 +1,14 @@
 c(
   bibentry(
+    bibtype  = "Article",
+    title    = "Threshold-sweep QCA: threshold dependence as an analytical dimension",
+    author   = "Yuki Toyoda",
+    journal  = "Quality & Quantity",
+    year     = "2026",
+    doi      = "10.1007/s11135-026-03092-3",
+    header   = "To cite the methodology of threshold-sweep QCA in publications use:"
+  ),
+  bibentry(
     bibtype  = "Manual",
     title    = "ThSQCA: Threshold-Sweep QCA",
     author   = "Yuki Toyoda",

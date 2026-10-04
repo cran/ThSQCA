@@ -223,6 +223,8 @@ ctSweepS <- function(dat,
   
   # Track thresholds with multiple solutions (for warning in "first" mode)
   multi_sol_thresholds <- c()
+  sweep_fails <- character(0)
+  warn_nonascii_names(conditions)
   
   # Handle dir.exp: scalar -> expand to vector; NULL is passed through
   # NULL -> parsimonious solution; c(1,1,...) -> intermediate solution
@@ -269,6 +271,7 @@ ctSweepS <- function(dat,
     )
     
     if (inherits(tt, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("X thr=", thr, " (truthTable): ", sweep_failure_message(tt)))
       new_row <- data.frame(
         threshold   = thr,
         expression  = "No solution",
@@ -312,6 +315,7 @@ ctSweepS <- function(dat,
     )
     
     if (inherits(sol, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("X thr=", thr, " (minimize): ", sweep_failure_message(sol)))
       new_row <- data.frame(
         threshold   = thr,
         expression  = "No solution",
@@ -389,6 +393,8 @@ ctSweepS <- function(dat,
     )
   }
   
+  warn_sweep_failures(sweep_fails)
+
   if (return_details) {
     result <- list(
       summary = df_out, 
@@ -693,6 +699,8 @@ ctSweepM <- function(dat,
   
   # Track combinations with multiple solutions (for warning in "first" mode)
   multi_sol_combos <- c()
+  sweep_fails <- character(0)
+  warn_nonascii_names(conditions)
   
   # Handle dir.exp: scalar -> expand to vector; NULL is passed through
   # NULL -> parsimonious solution; c(1,1,...) -> intermediate solution
@@ -764,6 +772,7 @@ ctSweepM <- function(dat,
     )
     
     if (inherits(tt, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("combination ", i, " (truthTable): ", sweep_failure_message(tt)))
       df_out$threshold[i]   <- thrX_label
       df_out$expression[i]  <- "No solution"
       df_out$inclS[i]       <- NA_real_
@@ -801,6 +810,7 @@ ctSweepM <- function(dat,
     )
     
     if (inherits(sol, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("combination ", i, " (minimize): ", sweep_failure_message(sol)))
       df_out$threshold[i]   <- thrX_label
       df_out$expression[i]  <- "No solution"
       df_out$inclS[i]       <- NA_real_
@@ -865,6 +875,8 @@ ctSweepM <- function(dat,
     )
   }
   
+  warn_sweep_failures(sweep_fails)
+
   if (return_details) {
     result <- list(
       summary = df_out, 
@@ -876,6 +888,7 @@ ctSweepM <- function(dat,
         pre_calibrated = pre_calibrated,
         sweep_list = sweep_list,
         thrY = thrY,
+        thrX_default = thrX_default,
         incl.cut = incl.cut,
         n.cut = n.cut,
         pri.cut = pri.cut,

@@ -1,3 +1,66 @@
+# ThSQCA 2.0.9
+
+## Documentation
+
+* The methodology paper is now cited in `DESCRIPTION`, `citation("ThSQCA")`
+  and the README: Toyoda, Y. (2026). Threshold-sweep QCA: threshold dependence
+  as an analytical dimension. *Quality & Quantity*.
+  <doi:10.1007/s11135-026-03092-3>. (It is the work cited as
+  "Toyoda (2026b, *Quality & Quantity*)" in the 2.0.0 notes below.)
+
+## Bug fixes
+
+* The sweep functions reported "No solution" without any message when
+  `QCA::minimize()` raised an error, which happens for condition names with
+  non-ASCII characters (for example Japanese). They now warn about such names
+  at the start, and warn at the end if any setting was reported as "No
+  solution" because QCA failed, quoting the error message. Use ASCII names
+  for conditions.
+
+* `generate_report(format = "simple")` printed `*inclS = N/A, covS = N/A*`
+  under each threshold heading in "Solutions Overview" whenever `otSweep()`
+  was run without `dir.exp`. The line now reports the fit of the displayed
+  solution: the intermediate solution's fit when `dir.exp` was given, and the
+  fit stored in `sol$IC` otherwise, as the "full" format already did. Results
+  of `otSweep()` and the other report sections are unchanged.
+
+* `generate_report()` produced no per-combination sections at all for results
+  of `ctSweepM()` and `dtSweep()` (the "Solutions Overview" of the simple
+  format and the "Detailed Results" and "Cross-Threshold Comparison" sections
+  of the full format were empty), because those results store their details
+  without names. Combinations are now reported, and their headings carry the
+  combination number and X thresholds, since several combinations share one
+  Y threshold. Headings of `otSweep()` and `ctSweepS()` reports are unchanged.
+
+* The "Necessity Analysis" table of the full report was computed for `Y` even
+  when the outcome was negated (`outcome = "~Y"`), whereas the solution was
+  computed for `~Y`. It now analyses the same outcome as the solution. Values
+  that are undefined (0/0, for example when no case is in the outcome set) are
+  shown as `NA` instead of `NaN`.
+
+* Configuration charts and `compute_fiss_core()` decided whether a condition
+  was present in a term by pattern matching that treated only ASCII letters,
+  digits, `_` and `.` as name characters. With non-ASCII (for example
+  Japanese) variable names, a name that is the beginning of another name
+  (say a name and the same name followed by more characters) was found inside
+  the longer name, so the symbol appeared in the wrong row. Whole literals of
+  the term are now compared.
+
+* `format_qca_term()` (and so `format_qca_solution()`, `format_qca_solutions()`
+  and `extract_terms()`) silently dropped any part of a term that is not a
+  known variable name, and read characters such as `.` and `+` in a variable
+  name as regular-expression syntax. Names are now matched literally, and a
+  term that cannot be split completely into the given names is returned
+  unchanged.
+
+* The overview of the full report labelled the sweep design of `ctSweepS()`
+  results as "Y Sweep Range" and showed no sweep design for `ctSweepM()` and
+  `dtSweep()`. It now names the swept condition and its range, the sweep
+  lists and the Y range where applicable, and the default X threshold.
+  `ctSweepM()` now stores `thrX_default` in `params`, as `ctSweepS()` already
+  did, so that the thresholds used for conditions that are not swept can be
+  reported and re-derived.
+
 # ThSQCA 2.0.8
 
 This release corrects `compute_fiss_core()`. Core/peripheral classifications

@@ -1,7 +1,7 @@
 Package: ThSQCA
 Type: Package
 Title: Threshold-Sweep QCA
-Version: 2.0.8
+Version: 2.0.9
 Authors@R: c(
     person("Yuki", "Toyoda", role = c("aut", "cre"),
            email = "yuki.toyoda.ds@hosei.ac.jp"),
@@ -24,6 +24,8 @@ Description: Provides threshold sweep methods for Qualitative Comparative
     conventions. Based on set-theoretic methods by Ragin (2008)
     <doi:10.7208/chicago/9780226702797.001.0001> and established robustness
     protocols by Oana and Schneider (2024) <doi:10.1177/00491241211036158>.
+    The threshold-sweep framework is described in Toyoda (2026)
+    <doi:10.1007/s11135-026-03092-3>.
     This package supersedes 'TSQCA'; see the NEWS file for migration guidance.
 Depends: R (>= 4.0)
 Imports: QCA
@@ -33,16 +35,16 @@ License: MIT + file LICENSE
 URL: https://github.com/im-research-yt/ThSQCA,
         https://doi.org/10.5281/zenodo.17899390
 BugReports: https://github.com/im-research-yt/ThSQCA/issues
-Date: 2026-09-25
+Date: 2026-10-04
 Encoding: UTF-8
 LazyData: true
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
 NeedsCompilation: no
-Packaged: 2026-09-26 10:25:04 UTC; yukit
+Packaged: 2026-10-04 09:51:38 UTC; yukit
 Author: Yuki Toyoda [aut, cre],
   Japan Society for the Promotion of Science [fnd] (KAKENHI Grant Number
     JP20K01998)
 Maintainer: Yuki Toyoda <yuki.toyoda.ds@hosei.ac.jp>
 Repository: CRAN
-Date/Publication: 2026-09-26 13:30:09 UTC
+Date/Publication: 2026-10-04 23:10:08 UTC

@@ -213,6 +213,8 @@ otSweep <- function(dat,
   
   # Track thresholds with multiple solutions (for warning in "first" mode)
   multi_sol_thresholds <- c()
+  sweep_fails <- character(0)
+  warn_nonascii_names(conditions)
   
   # Handle dir.exp: scalar -> expand to vector; NULL is passed through
 
@@ -254,6 +256,7 @@ otSweep <- function(dat,
     )
     
     if (inherits(tt, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("thrY=", thrY, " (truthTable): ", sweep_failure_message(tt)))
       new_row <- data.frame(
         thrY        = thrY,
         expression  = "No solution",
@@ -296,6 +299,7 @@ otSweep <- function(dat,
     )
     
     if (inherits(sol, "try-error")) {
+      sweep_fails <- c(sweep_fails, paste0("thrY=", thrY, " (minimize): ", sweep_failure_message(sol)))
       new_row <- data.frame(
         thrY        = thrY,
         expression  = "No solution",
@@ -371,6 +375,8 @@ otSweep <- function(dat,
     )
   }
   
+  warn_sweep_failures(sweep_fails)
+
   if (return_details) {
     result <- list(
       summary = df_out, 
@@ -664,6 +670,8 @@ dtSweep <- function(dat,
 
   # Track combinations with multiple solutions (for warning in "first" mode)
   multi_sol_combos <- c()
+  sweep_fails <- character(0)
+  warn_nonascii_names(conditions)
   
   combo_id <- 1L
   
@@ -700,6 +708,7 @@ dtSweep <- function(dat,
       )
       
       if (inherits(tt, "try-error")) {
+        sweep_fails <- c(sweep_fails, paste0("combination ", combo_id, ", thrY=", thrY, " (truthTable): ", sweep_failure_message(tt)))
         new_row <- data.frame(
           combo_id    = combo_id,
           thrY        = thrY,
@@ -746,6 +755,7 @@ dtSweep <- function(dat,
       )
       
       if (inherits(sol, "try-error")) {
+        sweep_fails <- c(sweep_fails, paste0("combination ", combo_id, ", thrY=", thrY, " (minimize): ", sweep_failure_message(sol)))
         new_row <- data.frame(
           combo_id    = combo_id,
           thrY        = thrY,
@@ -832,6 +842,8 @@ dtSweep <- function(dat,
     )
   }
   
+  warn_sweep_failures(sweep_fails)
+
   if (return_details) {
     result <- list(
       summary = df_out, 

@@ -356,21 +356,31 @@ format_qca_term <- function(term, var_names, use_tilde = TRUE) {
   # Sort variable names by length (descending) to avoid partial matches
   var_names_sorted <- var_names[order(nchar(var_names), decreasing = TRUE)]
   
+  # Names are matched literally (\Q...\E), so that characters such as "." or
+  # "+" in a name are not read as regular-expression syntax.
+  quote_name <- function(x) paste0("\\Q", x, "\\E")
+  
   # Build pattern for matching
   if (use_tilde) {
     # Match ~VAR or VAR
-    patterns <- paste0("~?", var_names_sorted)
+    patterns <- paste0("~?", quote_name(var_names_sorted))
   } else {
     # Match VAR (uppercase) or var (lowercase for negation)
-    patterns <- c(var_names_sorted, tolower(var_names_sorted))
+    patterns <- quote_name(c(var_names_sorted, tolower(var_names_sorted)))
   }
   
   pattern <- paste(patterns, collapse = "|")
   
   # Extract all matches
-  matches <- regmatches(term, gregexpr(pattern, term, ignore.case = FALSE))[[1]]
+  matches <- regmatches(term, gregexpr(pattern, term, perl = TRUE))[[1]]
   
   if (length(matches) == 0) {
+    return(term)
+  }
+  
+  # If the matches do not add up to the whole term, part of it is not a known
+  # variable name. Return the term unchanged rather than silently dropping text.
+  if (!identical(paste(matches, collapse = ""), term)) {
     return(term)
   }
   

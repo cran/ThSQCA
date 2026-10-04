@@ -37,44 +37,20 @@ parse_solution_terms <- function(expr) {
 #'
 #' @return Character. One of "present", "absent", or "dontcare".
 #'
-#' @details Uses word boundary matching to avoid false positives when
-#'   condition names are substrings of each other (e.g., X1 vs X10).
+#' @details A term is a product of literals separated by \code{*}, and a literal
+#'   is a condition name, optionally preceded by \code{~}. Whole literals are
+#'   compared, so a name that is contained in another name (\code{X1} and
+#'   \code{X10}, or a non-ASCII name and a longer name that starts with it) is
+#'   never mistaken for it.
 #'
 #' @keywords internal
 get_condition_status <- function(term, condition) {
-  # Remove spaces from term for consistent matching
-  term <- gsub("\\s+", "", term)
-  
-  # Quote the condition name literally (PCRE \Q...\E). The previous
-  # bracket-expression escape had no effect, so "." in a name such as "A.B"
-  # matched any character and "A.B" was found in "A*B".
-  cond_escaped <- paste0("\\Q", condition, "\\E")
-  
-  # Negated condition check (~X1 or similar)
-  # "." counts as part of a name (R allows names such as "high.trust"), so a
-  # condition "A" is not matched inside "A.B".
-  negated_pattern <- paste0("~", cond_escaped, "(?![A-Za-z0-9_.]|$)")
-  # Also check for ~X1 at end of string
-  negated_pattern_end <- paste0("~", cond_escaped, "$")
-  if (grepl(negated_pattern, term, perl = TRUE) || 
-      grepl(negated_pattern_end, term, perl = TRUE)) {
-    return("absent")
-  }
-  
-  # Positive condition check (X1 but not ~X1)
-  # Pattern: X1 not preceded by ~ or a name character, not followed by one
-  positive_pattern <- paste0("(?<![~A-Za-z0-9_.])", cond_escaped, "(?![A-Za-z0-9_.])")
-  # Also check for condition at start of string
-  positive_pattern_start <- paste0("^", cond_escaped, "(?![A-Za-z0-9_.]|$)")
-  positive_pattern_end <- paste0("(?<![~A-Za-z0-9_.])", cond_escaped, "$")
-  
-  if (grepl(positive_pattern, term, perl = TRUE) ||
-      grepl(positive_pattern_start, term, perl = TRUE) ||
-      grepl(positive_pattern_end, term, perl = TRUE)) {
-    return("present")
-  }
-  
-  return("dontcare")
+  lits <- trimws(strsplit(term, "*", fixed = TRUE)[[1]])
+  lits <- sub("^~\\s+", "~", lits)
+
+  if (paste0("~", condition) %in% lits) return("absent")
+  if (condition %in% lits) return("present")
+  "dontcare"
 }
 
 

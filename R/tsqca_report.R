@@ -136,6 +136,32 @@ generate_report <- function(result,
 }
 
 
+# ctSweepM() and dtSweep() store `details` as an unnamed list (one element per
+# threshold combination). Loops written as `for (key in names(details))` run zero
+# times on such a list, so the report would silently omit every combination.
+# Give unnamed details positional names so that all report loops see them.
+# Named details (otSweep, ctSweepS) are returned unchanged.
+name_report_details <- function(details) {
+  if (length(details) > 0L && is.null(names(details))) {
+    names(details) <- as.character(seq_along(details))
+  }
+  details
+}
+
+# Label suffix that tells threshold combinations apart. Only multi-dimensional
+# sweeps carry `combo_id`; for other sweeps this returns "" and headings are
+# unchanged. Several combinations can share the same thrY, so thrY alone is not
+# a unique heading.
+report_combo_suffix <- function(det) {
+  if (is.null(det$combo_id)) return("")
+  x <- ""
+  if (!is.null(det$thrX_vec) && length(det$thrX_vec) > 0L) {
+    x <- paste0(": ", paste(names(det$thrX_vec), det$thrX_vec, sep = "=",
+                            collapse = ", "))
+  }
+  paste0(" [combination ", det$combo_id, x, "]")
+}
+
 #' Outcome label used in generated reports
 #'
 #' The sweeps always binarise the outcome into an internal column named
@@ -220,6 +246,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
   summary_df <- result$summary
   details <- result$details
   params <- result$params
+  details <- name_report_details(details)
   outcome_lab <- report_outcome_label(params)
   
   # ============================================
@@ -255,15 +282,39 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
       pc_str <- paste(params$pre_calibrated, collapse = ", ")
       writeLines(paste0("| Pre-Calibrated Conditions | ", pc_str, " (passed through, no binarization) |"), con)
     }
-    if (!is.null(params$thrX)) {
-      thrX_str <- paste(names(params$thrX), params$thrX, sep = "=", collapse = ", ")
+    if (!is.null(params[["thrX"]])) {
+      thrX_str <- paste(names(params[["thrX"]]), params[["thrX"]], sep = "=", collapse = ", ")
       writeLines(paste0("| X Thresholds | ", thrX_str, " |"), con)
     }
-    if (!is.null(params$sweep_range)) {
-      writeLines(paste0("| Y Sweep Range | ", min(params$sweep_range), "-", max(params$sweep_range), " |"), con)
+    if (!is.null(params[["sweep_range"]])) {
+      rng <- paste0(min(params[["sweep_range"]]), "-", max(params[["sweep_range"]]))
+      if (!is.null(params$sweep_var)) {
+        # ctSweepS(): what is swept is the threshold of one condition, not Y
+        writeLines(paste0("| Swept Condition | ", params$sweep_var, " |"), con)
+        writeLines(paste0("| X Sweep Range (", params$sweep_var, ") | ", rng, " |"), con)
+      } else {
+        writeLines(paste0("| Y Sweep Range | ", rng, " |"), con)
+      }
+    }
+    fmt_sweep_list <- function(l) {
+      paste(names(l), vapply(l, function(v) {
+        if (length(v) > 1L) paste0(min(v), "-", max(v)) else as.character(v)
+      }, character(1)), sep = "=", collapse = ", ")
+    }
+    if (!is.null(params[["sweep_list"]])) {
+      writeLines(paste0("| X Sweep List | ", fmt_sweep_list(params[["sweep_list"]]), " |"), con)
+    }
+    if (!is.null(params$sweep_list_X)) {
+      writeLines(paste0("| X Sweep List | ", fmt_sweep_list(params$sweep_list_X), " |"), con)
+    }
+    if (!is.null(params$sweep_range_Y)) {
+      writeLines(paste0("| Y Sweep Range | ", min(params$sweep_range_Y), "-", max(params$sweep_range_Y), " |"), con)
     }
     if (!is.null(params$thrY)) {
       writeLines(paste0("| Y Threshold | ", params$thrY, " |"), con)
+    }
+    if (!is.null(params$thrX_default)) {
+      writeLines(paste0("| Default X Threshold | ", params$thrX_default, " |"), con)
     }
     if (!is.null(params$incl.cut)) {
       writeLines(paste0("| Consistency Cutoff | ", params$incl.cut, " |"), con)
@@ -416,9 +467,9 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
     
     # Determine threshold label
     if (!is.null(det$thrY)) {
-      writeLines(paste0("### thrY = ", det$thrY, "\n"), con)
+      writeLines(paste0("### thrY = ", det$thrY, report_combo_suffix(det), "\n"), con)
     } else if (!is.null(det$threshold)) {
-      writeLines(paste0("### Threshold = ", det$threshold, "\n"), con)
+      writeLines(paste0("### Threshold = ", det$threshold, report_combo_suffix(det), "\n"), con)
     } else if (!is.null(det$combo_id)) {
       writeLines(paste0("### Combination ", det$combo_id, "\n"), con)
     } else {
@@ -435,10 +486,15 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
     dat_bin <- det$dat_bin
     if (!is.null(dat_bin) && !is.null(det$thrX_vec)) {
       Xvars <- names(det$thrX_vec)
-      nec <- quiet_try(QCA::pofind(dat_bin, outcome = "Y", conditions = Xvars), silent = TRUE)
+      # Analyse the same outcome as the solution: "~Y" when the outcome was
+      # negated (the binarized column is always called "Y").
+      nec_outcome <- if (isTRUE(params$negate_outcome)) "~Y" else "Y"
+      nec <- quiet_try(QCA::pofind(dat_bin, outcome = nec_outcome, conditions = Xvars), silent = TRUE)
       if (!inherits(nec, "try-error") && !is.null(nec$incl.cov)) {
         writeLines("#### Necessity Analysis\n", con)
         nec_df <- nec$incl.cov
+        # 0/0 (e.g. no case in the outcome set) is reported as NA, not NaN.
+        nec_df[] <- lapply(nec_df, function(v) if (is.numeric(v)) replace(v, is.nan(v), NA) else v)
         nec_df <- cbind(Condition = trimws(rownames(nec_df)), nec_df)
         rownames(nec_df) <- NULL
         writeLines(df_to_md_table(nec_df), con)
@@ -649,6 +705,9 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
     if (!is.null(det$thrY)) {
       writeLines(paste0("thrY: ", det$thrY), con)
     }
+    if (!is.null(params$thrX_default)) {
+      writeLines(paste0("thrX_default: ", params$thrX_default), con)
+    }
     if (!is.null(params$incl.cut)) {
       writeLines(paste0("incl.cut: ", params$incl.cut), con)
     }
@@ -693,7 +752,7 @@ write_full_report <- function(result, con, dat = NULL, desc_vars = NULL,
     
     # Threshold label
     thr_label <- if (!is.null(det$thrY)) {
-      paste0("thrY=", det$thrY)
+      paste0("thrY=", det$thrY, report_combo_suffix(det))
     } else if (!is.null(det$threshold)) {
       as.character(det$threshold)
     } else {
@@ -860,6 +919,7 @@ write_simple_report <- function(result, con, include_chart = TRUE,
   summary_df <- result$summary
   details <- result$details
   outcome_lab <- report_outcome_label(result$params)
+  details <- name_report_details(details)
   
   # 1. Summary Table
   writeLines("## Summary\n", con)
@@ -878,9 +938,10 @@ write_simple_report <- function(result, con, include_chart = TRUE,
     
     # Determine threshold label
     if (!is.null(det$thrY)) {
-      label <- paste0(sub("^~", "", outcome_lab), " >= ", det$thrY)
+      label <- paste0(sub("^~", "", outcome_lab), " >= ", det$thrY,
+                      report_combo_suffix(det))
     } else if (!is.null(det$threshold)) {
-      label <- paste0("threshold = ", det$threshold)
+      label <- paste0("threshold = ", det$threshold, report_combo_suffix(det))
     } else {
       label <- key
     }
@@ -920,7 +981,17 @@ write_simple_report <- function(result, con, include_chart = TRUE,
       }
       
       # Metrics (brief)
-      metrics <- extract_all_metrics(sol$i.sol$C1P1$IC, sol)
+      # Report the fit of the DISPLAYED solution. When dir.exp yields an
+      # intermediate solution, its fit lives in sol$i.sol$C1P1$IC; otherwise
+      # (no dir.exp) sol$IC is the only fit available. Same fallback as the
+      # "Solution Fit" and comparison-table code paths above.
+      ic_for_metrics <- if (!is.null(sol$i.sol) && length(sol$i.sol) > 0 &&
+                            !is.null(sol$i.sol$C1P1$IC)) {
+        sol$i.sol$C1P1$IC
+      } else {
+        sol$IC
+      }
+      metrics <- extract_all_metrics(ic_for_metrics, sol)
       writeLines(paste0("*inclS = ", 
                         ifelse(is.na(metrics$sol_inclS), "N/A", round(metrics$sol_inclS, 3)),
                         ", covS = ",

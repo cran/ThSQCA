@@ -19,7 +19,10 @@ Checks whether a condition is present, absent (negated), or don't care
 in a given term.
 }
 \details{
-Uses word boundary matching to avoid false positives when
-  condition names are substrings of each other (e.g., X1 vs X10).
+A term is a product of literals separated by \code{*}, and a literal
+  is a condition name, optionally preceded by \code{~}. Whole literals are
+  compared, so a name that is contained in another name (\code{X1} and
+  \code{X10}, or a non-ASCII name and a longer name that starts with it) is
+  never mistaken for it.
 }
 \keyword{internal}

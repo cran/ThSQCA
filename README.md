@@ -273,6 +273,11 @@ install.packages("devtools")
 devtools::install_github("im-research-yt/ThSQCA")
 ```
 
+> **Note:** The current CRAN release is version 2.0.8. The GitHub version
+> additionally contains bug fixes for reports, configuration charts and helper
+> functions that are planned for the next CRAN release (2.0.9); see `NEWS.md`.
+> The solutions and fit measures returned by the sweep functions are unchanged.
+
 ## Relationship with QCA Package
 
 ThSQCA is built on top of the [QCA package](https://cran.r-project.org/package=QCA) (Duşa, 2019). All function arguments follow QCA conventions:
@@ -475,7 +480,11 @@ str(sample_data)
 
 ## Citation
 
-To cite the package, use `citation("ThSQCA")`. The accompanying preprint describing the threshold-sweep workflow is:
+To cite the method, please cite the methodology paper; to cite the package, use `citation("ThSQCA")`.
+
+- Toyoda, Y. (2026). Threshold-sweep QCA: threshold dependence as an analytical dimension. *Quality & Quantity*. [DOI: 10.1007/s11135-026-03092-3](https://doi.org/10.1007/s11135-026-03092-3)
+
+The accompanying preprint describing the threshold-sweep workflow is:
 
 - Toyoda, Y. (2026). ThSQCA: Reproducible Threshold-Sweep Workflows for QCA in R. *SocArXiv*. [DOI: 10.31235/osf.io/yb8xs_v1](https://doi.org/10.31235/osf.io/yb8xs_v1)
 
